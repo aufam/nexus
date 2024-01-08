@@ -1,0 +1,7 @@
+/*[Bb]uild*
+/*[Dd]ebug*
+/*[Rr]elease*
+
+.*
+!.gitignore
+compile_commands.json
