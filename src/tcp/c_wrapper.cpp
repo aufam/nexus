@@ -24,7 +24,7 @@ extern "C" {
         cast_server(server)->stop();
     }
 
-    void nexus_tcp_add_callback(nexus_tcp_server_t server, uint8_t* (*callback)(const uint8_t* request, size_t* length)) {
+    void nexus_tcp_server_add_callback(nexus_tcp_server_t server, uint8_t* (*callback)(const uint8_t* request, size_t* length)) {
         cast_server(server)->addCallback([callback] (nexus::byte_view bv) -> std::vector<uint8_t> {
             var req = bv.data();
             var len = bv.len();
@@ -35,7 +35,7 @@ extern "C" {
         });
     }
 
-    void nexus_tcp_set_logger(
+    void nexus_tcp_server_set_logger(
         nexus_tcp_server_t server, 
         void (*logger)(const char*, const uint8_t*, size_t, const uint8_t*, size_t)
     ) {

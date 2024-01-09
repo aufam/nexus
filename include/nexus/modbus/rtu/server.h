@@ -1,5 +1,5 @@
-#ifndef PROJECT_NEXUS_MODBUS_RTU_CLIENT_H
-#define PROJECT_NEXUS_MODBUS_RTU_CLIENT_H
+#ifndef PROJECT_NEXUS_MODBUS_RTU_SERVER_H
+#define PROJECT_NEXUS_MODBUS_RTU_SERVER_H
 
 #ifdef __cplusplus
 #include "nexus/modbus/api.h"
@@ -42,4 +42,4 @@ namespace Project::nexus::modbus::rtu {
 
 #else
 #endif
-#endif // PROJECT_NEXUS_MODBUS_RTU_CLIENT_H
+#endif // PROJECT_NEXUS_MODBUS_RTU_SERVER_H

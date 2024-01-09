@@ -88,6 +88,7 @@ int cserver() {
     nexus_http_server_stop(server);
     pthread_join(thd, NULL);
     
+    nexus_http_client_delete(client);
     nexus_http_server_delete(server);
     nexus_device_override_delete(a);
     nexus_device_override_delete(b);

@@ -1,25 +1,13 @@
-#ifndef PROJECT_NEXUS_VERSION_H
-#define PROJECT_NEXUS_VERSION_H
-#include "nexus/version.h"
-
-#ifdef __cplusplus
-
 namespace Project::nexus {
-    const char* get_version();
-    int get_version_major();
-    int get_version_minor();
-    int get_version_patch();
+    const char* get_version() { return NEXUS_VERSION; }
+    int get_version_major() { return NEXUS_VERSION_MAJOR; }
+    int get_version_minor() { return NEXUS_VERSION_MINOR; }
+    int get_version_patch() { return NEXUS_VERSION_PATCH; }
 }
 
 extern "C" {
-#endif
-
-const char* nexus_get_version();
-int nexus_get_version_major();
-int nexus_get_version_minor();
-int nexus_get_version_patch();
-
-#ifdef __cplusplus
+    const char* nexus_get_version() { return NEXUS_VERSION; }
+    int nexus_get_version_major() { return NEXUS_VERSION_MAJOR; }
+    int nexus_get_version_minor() { return NEXUS_VERSION_MINOR; }
+    int nexus_get_version_patch() { return NEXUS_VERSION_PATCH; }
 }
-#endif
-#endif

@@ -33,3 +33,9 @@ TEST(TCP, server) {
     var r = nexus::await | res;
     std::cout << (r == nexus::tcp::Server::Error::NONE ? "Server stop" : "Server fail to start in the first place") << int(r) << std::endl;
 }
+
+extern "C" int c_tcp_server();
+
+TEST(TCP, cserver) {
+    EXPECT_EQ(c_tcp_server(), 0);
+}

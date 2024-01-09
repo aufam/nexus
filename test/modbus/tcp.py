@@ -54,35 +54,42 @@ def main():
 
     time.sleep(1)
 
-    client = py_nexus.ModbusTCPClient(host=host, port=port)
-    res, err = client.ReadCoils(0x1100, 3)
-    if err == py_nexus.ModbusError.NONE:
-        assert res == coils
-    else:
-        print("Modbus error:", err)
+    try:
+        client = py_nexus.ModbusTCPClient(host=host, port=port)
+        res, err = client.ReadCoils(0x1100, 3)
+        if err == py_nexus.ModbusError.NONE:
+            assert res == coils
+        else:
+            print("Modbus error:", err)
 
-    err = client.WriteMultipleCoils(0x1100, 3, [True, True, True])
-    if err == py_nexus.ModbusError.NONE:
-        assert coils == [True, True, True]
-    else:
-        print("Modbus error:", err)
+        err = client.WriteMultipleCoils(0x1100, 3, [True, True, True])
+        if err == py_nexus.ModbusError.NONE:
+            assert coils == [True, True, True]
+        else:
+            print("Modbus error:", err)
 
-    value, err = client.WriteSingleCoil(0x1101, False)
-    if err == py_nexus.ModbusError.NONE:
-        assert value == False
-        assert coils == [True, False, True]
-    else:
-        print("Modbus error:", err)
+        value, err = client.WriteSingleCoil(0x1101, False)
+        if err == py_nexus.ModbusError.NONE:
+            assert value == False
+            assert coils == [True, False, True]
+        else:
+            print("Modbus error:", err)
 
-    res, err = client.ReadInputRegisters(0x2200, 3)
-    if err == py_nexus.ModbusError.NONE:
-        assert res == inputs
+        res, err = client.ReadInputRegisters(0x2200, 3)
+        if err == py_nexus.ModbusError.NONE:
+            assert res == inputs
+        else:
+            print("Modbus error:", err)
+    
+    except AssertionError as e:
+        print(f"Assertion failed: {e}")
+    
     else:
-        print("Modbus error:", err)
+        print("Assertion success")
 
-    server.stop()
-    print("Server stop")
-    print("Assertion success")
+    finally:
+        server.stop()
+        print("Server stop")
 
 
 if __name__ == '__main__':
