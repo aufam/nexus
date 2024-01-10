@@ -101,7 +101,7 @@ if __name__ == '__main__':
 
     parser.add_argument('-H', '--host', type=str, default='localhost', help='Specify the server host')
     parser.add_argument('-p', '--port', type=int, default=5000, help='Specify the server port')
-    parser.add_argument('-P', '--page', type=str, default=script_directory + '/ajsr04.html', help='Specify the HTML page')
+    parser.add_argument('-P', '--page', type=str, default=script_directory + '/aj-sr04.html', help='Specify the HTML page')
     parser.add_argument('-s', '--serial-port', type=str, default='auto', help='Specify the serial port')
 
     args = parser.parse_args()
