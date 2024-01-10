@@ -40,6 +40,11 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC
 	-DNEXUS_VERSION_PATCH=${PROJECT_VERSION_PATCH}
 )
 
+# thread dependency
+find_package(Threads REQUIRED)
+set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_OPTIONS "-pthread")
+target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
+
 # etl dependency
 find_package(etl CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PUBLIC etl)
