@@ -124,7 +124,7 @@ extern "C" {
         nexus_serial_codec_function_t decoder,
         const char* port, speed_t speed
     ) -> nexus_serial_t {
-        auto res = new nexus::cwrapper::Serial({.port=port, .speed=speed});
+        auto res = new nexus::cwrapper::Serial(serial::Serial::Args{.port=port, .speed=speed});
         res->restful = static_cast<nexus::cwrapper::Restful*>(restful);
         res->encoder = encoder;
         res->decoder = decoder;
