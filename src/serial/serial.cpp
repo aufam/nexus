@@ -1,6 +1,4 @@
 #include "nexus/serial/serial.h"
-#include "nexus/serial/c_wrapper.h"
-#include "nexus/abstract/c_wrapper.h"
 #include "nexus/tools/detect_virtual_comm.h"
 #include "nexus/tools/json.h"
 #include <future>
