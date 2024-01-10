@@ -41,6 +41,29 @@ void pybind11::bindByteView(module_& m) {
         return_value_policy::reference_internal, 
         "Reference to the device at the specified index."
     )
+    .def("__getitem__", 
+        [] (nexus::byte_view& self, slice sl) -> byte_view {
+            size_t start, stop, step, slicelength;
+            size_t size = self.size();
+            if (!sl.compute(size, &start, &stop, &step, &slicelength)) {
+                throw std::runtime_error("Unable to compute slice");
+            }
+
+            std::vector<uint8_t> slicedData;
+            try {
+                for (size_t i = start; i < stop; i += step) {
+                    slicedData.push_back(self[i]);
+                }
+            } catch (const std::out_of_range& e) {
+                throw index_error(e.what());
+            }
+            
+            return slicedData;
+        },
+        arg("slice"), 
+        return_value_policy::reference_internal, 
+        "Reference to the device at the specified index."
+    )
     .def("__iter__", 
         [] (nexus::byte_view& self) -> ByteViewIterator { 
             return etl::iter(self); 
