@@ -3,6 +3,7 @@
 #include "nexus/modbus/tcp/client.h"
 #include "nexus/tools/await.h"
 #include <thread>
+#include <iomanip>
 #include <etl/keywords.h>
 
 using namespace std::literals;
