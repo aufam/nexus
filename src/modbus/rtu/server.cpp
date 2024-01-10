@@ -4,7 +4,7 @@
 using namespace nexus;
 
 modbus::rtu::Server::Server(Args args) 
-    : serial::Serial({.port=args.port, .speed=args.speed, .timeout=args.timeout})
+    : serial::Serial(serial::Serial::Args{.port=args.port, .speed=args.speed, .timeout=args.timeout})
     , server_address(args.server_address) {
     addCallback([this] (nexus::byte_view buffer) {
         send(callback(server_address, buffer));
