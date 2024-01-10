@@ -72,7 +72,7 @@ extern "C" {
     }
 
     fun nexus_serial_new(const char* port, speed_t speed) -> nexus_serial_t {
-        return new serial::Serial({.port=port, .speed=speed});
+        return new serial::Serial(serial::Serial::Args{.port=port, .speed=speed});
     }
 
     fun nexus_serial_delete(nexus_serial_t serial) -> void {
@@ -80,7 +80,7 @@ extern "C" {
     }
 
     fun nexus_serial_reconnect(nexus_serial_t serial, const char* port, speed_t speed) -> void {
-        cast(serial)->reconnect({port, speed});
+        cast(serial)->reconnect(serial::Serial::Args{.port=port, .speed=speed});
     }
 
     fun nexus_serial_disconnect(nexus_serial_t serial) -> void {
