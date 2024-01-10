@@ -43,7 +43,7 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC
 # thread dependency
 find_package(Threads REQUIRED)
 set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_OPTIONS "-pthread")
-target_link_libraries(${PROJECT_NAME} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(${PROJECT_NAME} PUBLIC ${CMAKE_THREAD_LIBS_INIT} stdc++fs)
 
 # etl dependency
 find_package(etl CONFIG REQUIRED)
