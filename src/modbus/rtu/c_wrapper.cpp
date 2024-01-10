@@ -59,7 +59,7 @@ extern "C" {
     }
 
     fun nexus_modbus_rtu_client_new(const char* port, speed_t speed) -> nexus_modbus_rtu_client_t {
-        return new nexus::modbus::rtu::Client({.port=port, .speed=speed});
+        return new nexus::modbus::rtu::Client(nexus::modbus::rtu::Client::Args{.port=port, .speed=speed});
     }
 
     fun nexus_modbus_rtu_client_delete(nexus_modbus_rtu_client_t client) -> void {
