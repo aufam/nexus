@@ -97,8 +97,8 @@ TEST(Server, listener) {
     EXPECT_LT(jb["x"].to_int(), 0);
 }
 
-extern "C" int cserver();
+extern "C" int c_http_server();
 
 TEST(Server, cserver) {
-    EXPECT_EQ(cserver(), 0);
+    EXPECT_EQ(c_http_server(), 0);
 }

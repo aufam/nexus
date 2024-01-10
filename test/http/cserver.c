@@ -55,7 +55,7 @@ static void* server_listen_non_blocking(nexus_http_server_t server) {
     return NULL;
 }
 
-int cserver() {
+int c_http_server() {
     nexus_device_t a = create_device(pathA, updateA);
     nexus_device_t b = create_device(pathB, updateB);
 
