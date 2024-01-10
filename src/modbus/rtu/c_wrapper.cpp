@@ -13,7 +13,7 @@ extern "C" {
     }
 
     fun nexus_modbus_rtu_server_new(uint8_t server_address, const char* port, speed_t speed) -> nexus_modbus_rtu_server_t {
-        return new nexus::modbus::rtu::Server({.server_address=server_address, .port=port, .speed=speed});
+        return new nexus::modbus::rtu::Server(nexus::modbus::rtu::Server::Args{.server_address=server_address, .port=port, .speed=speed});
     }
 
     fun nexus_modbus_rtu_server_delete(nexus_modbus_rtu_server_t server) -> void {

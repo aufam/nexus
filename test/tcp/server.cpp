@@ -23,7 +23,7 @@ TEST(TCP, server) {
     std::cout << "Server is running on http://" << host << ":" << port << std::endl;
     std::this_thread::sleep_for(1s);
 
-    var client = nexus::tcp::Client({.host=host, .port=port});
+    var client = nexus::tcp::Client(host, port);
     var [response, err] = client.request("Test");
     EXPECT_EQ(nexus::byte_view(response), nexus::byte_view("Test"));
     var [response2, err2] = client.request("Test 123");

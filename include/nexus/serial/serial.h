@@ -33,10 +33,10 @@ namespace Project::nexus::serial {
         /// Constructor with specified arguments.
         explicit Serial(Args args);
         Serial(std::string port, speed_t speed, std::chrono::milliseconds timeout=Default::timeout) 
-            : Serial({.port=port, .speed=speed, .timeout=timeout}) {}
+            : Serial(Args{.port=port, .speed=speed, .timeout=timeout}) {}
 
         /// Default constructor using default configuration.
-        Serial() : Serial({.port=Default::port, .speed=Default::speed, .timeout=Default::timeout}) {}
+        Serial() : Serial(Args{.port=Default::port, .speed=Default::speed, .timeout=Default::timeout}) {}
 
         /// Destructor for proper cleanup.
         virtual ~Serial();

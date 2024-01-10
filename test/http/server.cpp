@@ -57,7 +57,7 @@ TEST(Server, server) {
     a.update();
     b.update();
 
-    var client = nexus::http::Client({.host=host, .port=port});
+    var client = nexus::http::Client(host, port);
     val ra = client.Get("/a");
     val rb = client.Get("/b");
     val rt = client.Get("/test");

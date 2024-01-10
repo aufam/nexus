@@ -17,7 +17,7 @@ namespace Project::nexus::tcp {
         };
         
         Client(Args args);
-        Client(std::string host, int port) : Client({.host=host, .port=port}) {}
+        Client(std::string host, int port) : Client(Args{.host=host, .port=port}) {}
         virtual ~Client() {}
 
         enum Error {

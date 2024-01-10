@@ -41,7 +41,7 @@ TEST(Modbus, tcp) {
     std::cout << "Server is running on http://" << host << ":" << port << std::endl;
     std::this_thread::sleep_for(1s);
 
-    var client = nexus::modbus::tcp::Client({.host=host, .port=port});
+    var client = nexus::modbus::tcp::Client(host, port);
     client.WriteMultipleCoils(0x0010, 2, {{false}, {true}});
     EXPECT_EQ(coils[0], false);
     EXPECT_EQ(coils[1], true);

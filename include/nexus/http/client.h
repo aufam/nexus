@@ -34,7 +34,7 @@ namespace Project::nexus::http {
         /// Constructs a Client object with the specified host and port.
         /// @param host The host address to connect to.
         /// @param port The port number to connect to.
-        explicit Client(std::string host, int port) : Client({.host=host, .port=port}) {}
+        Client(std::string host, int port) : Client(Args{.host=host, .port=port}) {}
 
         /// Destructor for the Client object.
         /// Cleans up any resources associated with the client.

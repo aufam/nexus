@@ -20,7 +20,7 @@ namespace Project::nexus::modbus::rtu {
         /// Constructor with specified arguments.
         explicit Server(Args args);
         Server(uint8_t server_address, std::string port, speed_t speed, std::chrono::milliseconds timeout=Default::timeout) 
-            : Server({.server_address=server_address, .port=port, .speed=speed, .timeout=timeout}) {}
+            : Server(Args{.server_address=server_address, .port=port, .speed=speed, .timeout=timeout}) {}
 
         virtual ~Server() {}
 
