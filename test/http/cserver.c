@@ -19,13 +19,15 @@ static char* json(void* member) {
     return res;
 }
 
-static char* pathA(void*) {
+static char* pathA(void* member) {
+    (void) member;
     char* res = (char*) malloc(32);
     sprintf(res, "/a");
     return res;
 }
 
-static char* pathB(void*) {
+static char* pathB(void* member) {
+    (void) member;
     char* res = (char*) malloc(32);
     sprintf(res, "/b");
     return res;
@@ -45,7 +47,8 @@ static nexus_device_t create_device(char *(*path)(void *members), void (*update)
     return nexus_device_override_new(nexus_restful_override_new(path, json, NULL, NULL, member), update);
 }
 
-static void get_test_handler(nexus_http_request_t, nexus_http_response_t response) {
+static void get_test_handler(nexus_http_request_t request, nexus_http_response_t response) {
+    (void) request;
     nexus_http_response_set_status(response, 200);
     nexus_http_response_set_content(response, "{\"msg\": \"echo test\"}", "application/json");
 }
