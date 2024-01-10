@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include "nexus/c_wrapper.h"
+#include "nexus/abstract/c_wrapper.h"
 
 #ifdef __cplusplus
 extern "C" {
