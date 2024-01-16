@@ -9,7 +9,6 @@
 #include "nexus/tools/timestamp.h"
 #include "nexus/tools/to_string.h"
 #include "nexus/tools/json.h"
-#include <iostream>
 #include <etl/keywords.h>
 
 using namespace std::literals;
@@ -37,12 +36,14 @@ public:
     std::string path() const override { 
         return "/aj-sr04"; 
     }
+    
     std::string json() const override { 
         return nexus::tools::json_concat(
             nexus::serial::Serial::json(), 
             "{\"distance\": " + nexus::tools::to_string(distance, 3) + "}"
         ); 
     }
+
     using nexus::serial::Serial::post;
     using nexus::serial::Serial::patch;
 
@@ -74,7 +75,7 @@ int main(int argc, char* argv[]) {
             std::cout << "-s, --serial-port Specify the serial port. Default = auto\n";
             std::cout << "-H, --host        Specify the server host. Default = localhost\n";
             std::cout << "-p, --port        Specify the server port. Default = 5000\n";
-            std::cout << "-P, --page        Specify the HTML page to serve in the main path. Default = aj-sr04.index\n";
+            std::cout << "-P, --page        Specify the HTML page to serve in the main path. Default = aj-sr04.html\n";
             std::cout << "-h, --help        Print help\n";
             exit(0);
         }},

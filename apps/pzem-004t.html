@@ -4,18 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <title>AJ-SR04 Distance Sensor</title>
+    <title>PZEM Interface</title>
 </head>
 <body class="bg-gray-100 p-8">
 
     <div class="max-w-md mx-auto bg-white rounded p-8 shadow-md">
-        <h1 class="text-2xl font-bold mb-4">AJ-SR04 Distance Sensor</h1>
-
+        <h1 class="text-2xl font-bold mb-4">PZEM Interface</h1>
+    
         <div id="response" class="mt-4"></div>
-
-        <button id="reconnectBtn" class="bg-green-500 text-white py-2 px-4 rounded" onclick="callMethod('reconnect')">Reconnect</button>
-        <button id="disconnectBtn" class="bg-red-500 text-white py-2 px-4 rounded" onclick="callMethod('disconnect')">Disconnect</button>
+    
+        <div class="flex space-x-4 space-y-4">
+            <button id="reconnectBtn" class="bg-green-500 text-white py-2 px-4 rounded" onclick="callMethod('reconnect')">Reconnect</button>
+            <button id="disconnectBtn" class="bg-red-500 text-white py-2 px-4 rounded" onclick="callMethod('disconnect')">Disconnect</button>
+        </div>
+        <div class="flex space-x-4 space-y-4">
+            <button id="calibrateBtn" class="bg-green-500 text-white py-2 px-4 rounded" onclick="callMethod('calibrate')">Calibrate</button>
+            <button id="resetEnergyBtn" class="bg-red-500 text-white py-2 px-4 rounded" onclick="callMethod('reset_energy')">Reset Energy</button>
+        </div>
     </div>
+    
 
     <script>
         // Call fetchData every second
@@ -23,7 +30,7 @@
 
         async function fetchData() {
             try {
-                const response = await fetch('/aj-sr04');
+                const response = await fetch('/pzem-004t');
                 const data = await response.json();
 
                 // Display the response data
@@ -40,7 +47,7 @@
 
         async function callMethod(method) {
             try {
-                await fetch(`/aj-sr04/${method}`, {
+                await fetch(`/pzem-004t/${method}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
