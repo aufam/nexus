@@ -25,7 +25,7 @@ add_library(${PROJECT_NAME} SHARED ${SOURCES})
 target_compile_options(${PROJECT_NAME} PRIVATE
 	-Wall
 	-Wextra
-	-Wno-literal-suffix
+	$<$<COMPILE_LANGUAGE:CXX>:-Wno-literal-suffix>
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC
@@ -51,7 +51,6 @@ target_link_libraries(${PROJECT_NAME} PUBLIC etl)
 
 # httplib dependency
 find_package(httplib CONFIG REQUIRED)
-target_compile_definitions(${PROJECT_NAME} PUBLIC -DBUILD_HTTP)
 	
 # install target
 install(TARGETS ${PROJECT_NAME}
@@ -67,7 +66,7 @@ install(TARGETS ${PROJECT_NAME}
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
 	"${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
-	VERSION ${NEXUS_VERSION}
+	VERSION ${PROJECT_VERSION}
 	COMPATIBILITY ExactVersion
 )
 
