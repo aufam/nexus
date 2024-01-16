@@ -21,6 +21,7 @@ Manage multiple devices within a separate thread, allowing for periodic updates.
 - [Build tests](#python_module)
 - [Build documentation](#docs)
 - [How to use](#how_to_use)
+- [Example usage](#example_usage)
 
 ## <a id="prerequisites"></a>Prerequisites
 * cmake minimum version 3.14 (required)
@@ -49,7 +50,7 @@ Manage multiple devices within a separate thread, allowing for periodic updates.
   ```bash
   pip install pybind11
   ```
-* [pybind11](https://github.com/google/googletest) (required for building [tests](#tests))
+* [googletest](https://github.com/google/googletest) (required for building [tests](#tests))
   ```bash
   git clone https://github.com/google/googletest
   cd googletest
@@ -143,3 +144,6 @@ LIB += -lnexus -pthread
 
 ### Python
 Install the [python module](#python_module)
+
+## <a id="example_usage"></a>Example usage
+See [apps](apps) for some implementation examples
