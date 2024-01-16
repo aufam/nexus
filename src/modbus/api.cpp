@@ -10,25 +10,20 @@ fun modbus::api::encode(nexus::byte_view buffer) -> std::vector<uint8_t> {
         res.push_back(byte);
     
     val crc = modbus::api::crc(buffer);
-    res.push_back((crc >> 8) & 0xFF);
     res.push_back((crc >> 0) & 0xFF);
+    res.push_back((crc >> 8) & 0xFF);
     return res;
 }
 
 fun modbus::api::decode(nexus::byte_view buffer) -> std::vector<uint8_t> {
-    var res = std::vector<uint8_t>();
     if (buffer.len() < 4)
-        return res;
-    
+        return {};
+
     val crc = modbus::api::crc({buffer.data(), buffer.len() - 2});
-    if (crc != (buffer[buffer.len() - 2] << 8 | buffer[buffer.len() - 1]))
-        return res;
+    if (crc != (buffer[-2] | buffer[-1] << 8))
+        return {};
     
-    res.reserve(buffer.len() - 2);
-    for (val byte in nexus::byte_view{buffer.data(), buffer.len() - 2})
-        res.push_back(byte);
-    
-    return res;
+    return {buffer.begin(), buffer.end() - 2};
 }
 
 static const uint16_t crcTable[] = {
