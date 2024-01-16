@@ -20,7 +20,7 @@ def main():
     
     int_list = hex_args_to_int_list(hex_args)
     encoded = py_nexus.ModbusEncode(int_list)
-    print(encoded)
+    print(' '.join([f'{value:02x}' for value in encoded]))
 
 if __name__ == "__main__":
     main()
