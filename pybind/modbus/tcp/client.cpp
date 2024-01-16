@@ -7,7 +7,7 @@ namespace pybind11 {
 }
 
 void pybind11::bindModbusTCPClient(module_& m) {
-    class_<nexus::modbus::tcp::Client>(m, "ModbusTCPClient", "Modbus TCP Client")
+    class_<nexus::modbus::tcp::Client, nexus::abstract::Communication>(m, "ModbusTCPClient", "Modbus TCP Client")
     .def(init<std::string, int>(), 
         arg("host"), 
         arg("port")

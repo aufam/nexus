@@ -19,9 +19,12 @@ namespace pybind11 {
     void bindTCPClient(module_& m); 
     void bindTCPServer(module_& m);
 
+    void bindModbusAPI(module_& m); 
     void bindModbusTCPClient(module_& m); 
     void bindModbusTCPServer(module_& m); 
-    void bindModbusAPI(module_& m); 
+
+    void bindModbusRTUClient(module_& m); 
+    void bindModbusRTUServer(module_& m); 
 }
 
 namespace py = pybind11;
@@ -47,7 +50,10 @@ PYBIND11_MODULE(py_nexus, m) {
     py::bindTCPClient(m); 
     py::bindTCPServer(m);
 
+    py::bindModbusAPI(m); 
     py::bindModbusTCPClient(m); 
     py::bindModbusTCPServer(m); 
-    py::bindModbusAPI(m); 
+
+    py::bindModbusRTUClient(m); 
+    py::bindModbusRTUServer(m); 
 }

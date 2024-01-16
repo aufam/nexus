@@ -10,7 +10,7 @@ namespace pybind11 {
 
     class Serial : public nexus::serial::Serial {
     public:
-        Serial(std::string port, speed_t speed) : nexus::serial::Serial(port, speed) {}
+        Serial(std::string port, speed_t speed, std::chrono::milliseconds timeout) : nexus::serial::Serial(port, speed, timeout) {}
         virtual ~Serial() {}
 
         std::string path() const override {
@@ -45,9 +45,10 @@ namespace pybind11 {
 
 void pybind11::bindSerial(module_& m) {
     class_<Serial, nexus::abstract::Communication>(m, "Serial", "Hardware Serial Communication")
-    .def(init<std::string, BaudRate>(), 
+    .def(init<std::string, BaudRate, std::chrono::milliseconds>(), 
         arg("port"), 
-        arg("speed")
+        arg("speed"),
+        arg("timeout") = Serial::Default::timeout
     )
     .def("isConnected",
         &Serial::isConnected,
