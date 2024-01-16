@@ -3,6 +3,6 @@
 #include <etl/keywords.h>
 
 int main() {
-    std::cout << "API version: " << nexus::get_version() << '\n';
+    std::cout << "Nexus version: " << nexus::get_version() << '\n';
     return 0;
 }
