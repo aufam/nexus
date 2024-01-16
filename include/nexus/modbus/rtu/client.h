@@ -34,10 +34,9 @@ namespace Project::nexus::modbus::rtu {
         using modbus::api::Client::Diagnostic;
         using modbus::api::Client::WriteMultipleCoils;
         using modbus::api::Client::WriteMultipleRegisters;
+        std::vector<uint8_t> Request(nexus::byte_view buffer) override;
         
     protected:
-        std::vector<uint8_t> Request(nexus::byte_view buffer) override;
-
         // Hide
         using serial::Serial::send;
         using serial::Serial::receiveText;
