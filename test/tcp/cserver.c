@@ -40,6 +40,7 @@ int c_tcp_server() {
     size_t length = sizeof(req);
     uint8_t* res = nexus_tcp_client_request(client, (const uint8_t*) req, &length, 100);
     printf("Response: %.*s\n", (int) length, (const char*) res);
+    free(res);
 
     nexus_tcp_server_stop(server);
     pthread_join(thd, NULL);
