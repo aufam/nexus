@@ -47,7 +47,6 @@ target_link_libraries(${PROJECT_NAME} PUBLIC ${CMAKE_THREAD_LIBS_INIT} stdc++fs)
 
 # etl dependency
 find_package(etl CONFIG REQUIRED)
-target_link_libraries(${PROJECT_NAME} PUBLIC etl)
 
 # httplib dependency
 find_package(httplib CONFIG REQUIRED)
