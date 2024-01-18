@@ -20,13 +20,13 @@ serial::Serial::~Serial() {
     worker.join();
 }
 
-fun serial::Serial::json() const -> std::string {
+fun serial::SoftwareSerial::json() const -> std::string {
     return "{"
         "\"isConnected\": " + std::string(isConnected() ? "true": "false") +  
     "}";
 }
 
-fun serial::Serial::post(std::string_view method_name, std::string_view json_string) -> std::string {
+fun serial::SoftwareSerial::post(std::string_view method_name, std::string_view json_string) -> std::string {
     val json = tools::json_parse(json_string);
     
     if (method_name == "disconnect") {
@@ -35,13 +35,14 @@ fun serial::Serial::post(std::string_view method_name, std::string_view json_str
     }
 
     if (method_name == "reconnect") {
+        Args args = get_args();
+
         val port = json["port"].to_string();
         val speed = json["speed"].to_string();
-        val timeout = json["timeout"].to_int_or(args_.timeout.count());
+        val timeout = json["timeout"].to_int_or(args.timeout.count());
 
-        Args args = args_;
-        args.port = port ? std::string(port.data(), port.len()) : args_.port;
-        args.speed = speed == "B115200" ? B115200 : speed == "B9600" ? B9600 : speed == "B57600" ? B57600 : args_.speed;
+        args.port = port ? std::string(port.data(), port.len()) : args.port;
+        args.speed = speed == "B115200" ? B115200 : speed == "B9600" ? B9600 : speed == "B57600" ? B57600 : args.speed;
         args.timeout = std::chrono::milliseconds(timeout);
 
         reconnect(args);
