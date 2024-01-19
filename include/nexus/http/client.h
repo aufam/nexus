@@ -11,30 +11,30 @@ namespace Project::nexus::http {
     /// This class provides a structured way to connect to HTTP servers and send requests.
     class Client : public httplib::Client, virtual public abstract::Communication {
     public:
-        /// Default connection settings.
-        struct Default {
-            /// Default host address.
-            static constexpr const char* host = "localhost";
-            /// Default port number.
-            static constexpr int port = 5000;
+        /// Arguments for constructing a Client object.
+        struct Args {
+            /// Host address to connect to
+            std::string host;
+            /// Port number to connect to
+            int port;
         };
 
         /// Arguments for constructing a Client object.
-        struct Args {
-            /// Host address to connect to. Defaults to `Client::Default::host`.
-            std::string host = Default::host;
-            /// Port number to connect to. Defaults to `Client::Default::port`.
-            int port = Default::port;
+        struct Args2 {
+            /// Host address and port number to connect to
+            std::string host_port;
         };
 
         /// Constructs a Client object with the specified connection settings.
         /// @param args The connection settings to use.
         explicit Client(Args args);
+        explicit Client(Args2 args);
 
         /// Constructs a Client object with the specified host and port.
         /// @param host The host address to connect to.
         /// @param port The port number to connect to.
         Client(std::string host, int port) : Client(Args{.host=host, .port=port}) {}
+        explicit Client(std::string host_port) : Client(Args2{.host_port=host_port}) {}
 
         /// Destructor for the Client object.
         /// Cleans up any resources associated with the client.

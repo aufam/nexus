@@ -9,6 +9,7 @@ namespace pybind11 {
     class HttpClient : virtual public nexus::http::Client {
     public:
         HttpClient(std::string host, int port) : nexus::http::Client(host, port) {}
+        HttpClient(std::string host_port) : nexus::http::Client(host_port) {}
         virtual ~HttpClient() {}
 
         std::string path() const override {
@@ -36,6 +37,9 @@ void pybind11::bindClient(module_& m) {
     .def(init<std::string, int>(), 
         arg("host"), 
         arg("port")
+    )
+    .def(init<std::string>(), 
+        arg("host_port")
     )
     .def("Get", 
         [] (HttpClient& self, const std::string& path) {

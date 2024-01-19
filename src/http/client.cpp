@@ -5,6 +5,7 @@
 using namespace Project::nexus;
 
 http::Client::Client(Args args) : httplib::Client(args.host, args.port) {}
+http::Client::Client(Args2 args) : httplib::Client(args.host_port) {}
 
 fun static cast(nexus_http_client_t client) {
     return static_cast<nexus::http::Client*>(client);
