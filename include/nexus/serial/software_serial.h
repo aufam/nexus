@@ -94,6 +94,8 @@ namespace Project::nexus::serial {
         /// @param timeout Timeout in milliseconds. Defaults to 1000ms.
         /// @return A vector of received bytes that match the filter.
         virtual std::vector<uint8_t> receiveBytes(std::function<bool(nexus::byte_view)> filter, std::chrono::milliseconds timeout = std::chrono::milliseconds(1000)) = 0;
+        
+        virtual void addCallback(std::function<void(nexus::byte_view)> fn) = 0;
 
     protected:
         virtual Args get_args() const { return {}; } 

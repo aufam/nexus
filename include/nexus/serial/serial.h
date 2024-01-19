@@ -84,7 +84,7 @@ namespace Project::nexus::serial {
 
         /// Adds a callback function to be invoked when data is received.
         /// @param fn The callback function to be called, taking a vector of received bytes as its argument.
-        void addCallback(std::function<void(nexus::byte_view)> fn);
+        void addCallback(std::function<void(nexus::byte_view)> fn) override;
 
     protected:
         Args args_;
