@@ -26,6 +26,9 @@ namespace Project::nexus::tools {
                 // file not found error
                 throw std::runtime_error("File not found: " + file);
             }
+            else {
+                throw std::runtime_error("Unknow error: " + file);
+            }
         }
 
         std::ostringstream oss;
@@ -33,6 +36,26 @@ namespace Project::nexus::tools {
         f.close();
 
         return oss.str();
+    }
+
+    inline std::string content_type(std::string file) {
+        std::string extension = file.substr(file.find_last_of('.') + 1);
+        return 
+            extension == "js"   ? "application/javascript" :
+            extension == "pdf"  ? "application/pdf" :
+            extension == "xml"  ? "application/xml" :
+            extension == "css"  ? "text/css" :
+            extension == "html" ? "text/html" :
+            extension == "txt"  ? "text/plain" :
+            extension == "jpeg" ? "image/jpeg" :
+            extension == "jpg"  ? "image/jpeg" :
+            extension == "png"  ? "image/png" :
+            extension == "gif"  ? "image/gif" :
+            extension == "mp4"  ? "video/mp4" :
+            extension == "mpeg" ? "audio/mpeg" :
+            extension == "mp3"  ? "audio/mpeg" :
+            "application/octet-stream" // Default to binary data
+        ;
     }
 }
 
