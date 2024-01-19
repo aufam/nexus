@@ -24,7 +24,16 @@ fun abstract::Listener::stop() -> void {
 }
 
 fun abstract::Listener::json() const -> std::string {
-    return "{\"length\": " + std::to_string(len()) + "}";
+    std::string json_devices = "[";
+    for (val &device in devices) {
+        json_devices += device->json() + ", ";
+    }
+    json_devices.pop_back();
+    json_devices.back() = ']';
+    return "{"
+        "\"length\": " + std::to_string(len()) + ", "
+        "\"devices\": " + json_devices +
+    "}";
 }
 
 fun abstract::Listener::post(std::string_view method_name, std::string_view json_request) -> std::string {
@@ -94,7 +103,7 @@ fun abstract::Listener::begin() -> iterator<Device> {
 }
 
 fun abstract::Listener::end() -> iterator<Device> {
-    return { devices, (int) devices.size() };
+    return { devices, (int) len() };
 }
 
 cwrapper::Listener::~Listener() { delete restful; }

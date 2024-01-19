@@ -42,12 +42,12 @@ namespace Project::nexus::abstract {
         /// Adds a device to the listener.
         /// @param [in] device Unique pointer to the device to add.
         /// @return Reference to the listener for method chaining.
-        Listener& add(std::unique_ptr<Device> device);
+        virtual Listener& add(std::unique_ptr<Device> device);
 
         /// Removes a device from the listener by index.
         /// @param [in] index Index of the device to remove.
         /// @return Reference to the listener for method chaining.
-        Listener& remove(int index);
+        virtual Listener& remove(int index);
 
         /// Accesses a device by index (const version).
         /// @param [in] index Index of the device to access.
@@ -76,7 +76,7 @@ namespace Project::nexus::abstract {
         iterator<Device> end();
 
         /// Returns the number of devices in the listener.
-        size_t len() const { return devices.size(); }
+        virtual size_t len() const { return devices.size(); }
 
         std::chrono::milliseconds interval = std::chrono::milliseconds(100);  ///< Time interval between updates.
 
