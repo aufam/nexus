@@ -17,16 +17,12 @@ using namespace std::literals;
 
 class FS50L : virtual public nexus::modbus::rtu::Client, virtual public nexus::abstract::Device {
 public:
-    FS50L(std::string port=nexus::modbus::rtu::Client::Default::port, int address = 0x01) 
-        : nexus::modbus::rtu::Client(port, B9600) 
-        , address(address)
-        {}
-
+    FS50L(int address = 0x01, std::string port = "auto") : nexus::modbus::rtu::Client(address, port, B9600) {}
     virtual ~FS50L() {}
 
     void update() override {
-        auto [res, err] = this->ReadHoldingRegisters(address, 0x3001, 7);
-        if (err == nexus::modbus::Error::NONE) {
+        auto res = this->ReadHoldingRegisters(0x3001, 7);
+        if (error() == nexus::modbus::Error::NONE) {
             frequencyRunning = res[0];
             busVoltage = res[1] * .1f;
             outputVoltage = res[2] * .1f;
@@ -46,8 +42,8 @@ public:
 
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
-        auto [res2, err2] = this->ReadHoldingRegisters(address, 0x8000, 1);
-        if (err2 == nexus::modbus::Error::NONE) {
+        auto res2 = this->ReadHoldingRegisters(0x8000, 1);
+        if (error() == nexus::modbus::Error::NONE) {
             faultInfo = res2[0];
         } else {
             faultInfo = -1;
@@ -60,9 +56,8 @@ public:
     
     std::string json() const override { 
         return nexus::tools::json_concat(
-            nexus::serial::Serial::json(), 
+            nexus::modbus::rtu::Client::json(), 
             "{"
-                "\"address\": " + std::to_string(address) + ", "
                 "\"frequencyRunning\": " + nexus::tools::to_string(frequencyRunning, 2) + ", "
                 "\"busVoltage\": " + nexus::tools::to_string(busVoltage, 1) + ", "
                 "\"outputCurrent\": " + nexus::tools::to_string(outputCurrent, 1) + ", "
@@ -76,50 +71,50 @@ public:
 
     std::string post(std::string_view method_name, std::string_view json_request) override {
         if (method_name == "forward_running") {
-            auto [res, err] = this->WriteSingleRegister(address, 0x1000, 0x0001);
-            return err == nexus::modbus::Error::NONE
+            this->WriteSingleRegister(0x1000, 0x0001);
+            return error() == nexus::modbus::Error::NONE
                 ? nexus::tools::json_response_status_success("forward running")
                 : nexus::tools::json_response_status_fail("forward running");
         }
 
         if (method_name == "reverse_running") {
-            auto [res, err] = this->WriteSingleRegister(address, 0x1000, 0x0002);
-            return err == nexus::modbus::Error::NONE
+            this->WriteSingleRegister(0x1000, 0x0002);
+            return error() == nexus::modbus::Error::NONE
                 ? nexus::tools::json_response_status_success("reverse running")
                 : nexus::tools::json_response_status_fail("reverse running");
         }
 
         if (method_name == "forward_jog") {
-            auto [res, err] = this->WriteSingleRegister(address, 0x1000, 0x0003);
-            return err == nexus::modbus::Error::NONE
+            this->WriteSingleRegister(0x1000, 0x0003);
+            return error() == nexus::modbus::Error::NONE
                 ? nexus::tools::json_response_status_success("forward jog")
                 : nexus::tools::json_response_status_fail("forward jog");
         }
 
         if (method_name == "reverse_jog") {
-            auto [res, err] = this->WriteSingleRegister(address, 0x1000, 0x0004);
-            return err == nexus::modbus::Error::NONE
+            this->WriteSingleRegister(0x1000, 0x0004);
+            return error() == nexus::modbus::Error::NONE
                 ? nexus::tools::json_response_status_success("reverse jog")
                 : nexus::tools::json_response_status_fail("reverse jog");
         }
 
         if (method_name == "free_stop") {
-            auto [res, err] = this->WriteSingleRegister(address, 0x1000, 0x0005);
-            return err == nexus::modbus::Error::NONE
+            this->WriteSingleRegister(0x1000, 0x0005);
+            return error() == nexus::modbus::Error::NONE
                 ? nexus::tools::json_response_status_success("free stop")
                 : nexus::tools::json_response_status_fail("free stop");
         }
 
         if (method_name == "decelerate_stop") {
-            auto [res, err] = this->WriteSingleRegister(address, 0x1000, 0x0006);
-            return err == nexus::modbus::Error::NONE
+            this->WriteSingleRegister(0x1000, 0x0006);
+            return error() == nexus::modbus::Error::NONE
                 ? nexus::tools::json_response_status_success("decelerate stop")
                 : nexus::tools::json_response_status_fail("decelerate stop");
         }
 
         if (method_name == "fault_resetting") {
-            auto [res, err] = this->WriteSingleRegister(address, 0x1000, 0x0007);
-            return err == nexus::modbus::Error::NONE
+            this->WriteSingleRegister(0x1000, 0x0007);
+            return error() == nexus::modbus::Error::NONE
                 ? nexus::tools::json_response_status_success("fault resetting")
                 : nexus::tools::json_response_status_fail("fault resetting");
         }
@@ -127,9 +122,10 @@ public:
         return nexus::modbus::rtu::Client::post(method_name, json_request);
     }
 
-    using nexus::serial::Serial::patch;
+    std::string patch(std::string_view json_request) override {
+        return nexus::modbus::rtu::Client::patch(json_request);
+    }
 
-    int address;
     float frequencyRunning;
     float busVoltage;
     float outputVoltage;
@@ -178,7 +174,7 @@ int main(int argc, char* argv[]) {
     
     var listener = nexus::abstract::Listener();
     listener.interval = 1s;
-    listener.add(std::make_unique<FS50L>(serial_port, device_address));
+    listener.add(std::make_unique<FS50L>(device_address, serial_port));
 
     var server = nexus::http::Server();
     server.add(listener[0]);

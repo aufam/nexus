@@ -2,6 +2,7 @@
 #define PROJECT_NEXUS_TOOLS_JSON_H
 
 #include <string>
+#include <vector>
 #include <etl/json.h>
 
 namespace Project::nexus::tools {
@@ -72,6 +73,26 @@ namespace Project::nexus::tools {
 
     inline std::string json_response_status_fail_unknown_method() {
         return json_response_status_fail("Unknown method");
+    }
+
+    template <typename T>
+    std::vector<T> json_to_vector(const etl::Json& json) {
+        auto res = std::vector<T>(json.len());
+        for (auto [src, dest]: etl::zip(json, res)) {
+            if constexpr (std::is_integral_v<T>) {
+                dest = src.to_int();
+            } else if constexpr (std::is_floating_point_v<T>) {
+                dest = src.to_float();
+            } else if constexpr (std::is_same_v<T, bool>) {
+                dest = src.is_true();
+            } else if constexpr (std::is_same_v<T, std::string>) {
+                dest = std::string(src.to_string().begin(), src.to_string().end());
+            } else {
+                // static_assert(false, "Unsupported type");
+            }
+        }
+        
+        return res;
     }
 }
 

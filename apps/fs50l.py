@@ -9,8 +9,7 @@ from math import nan
 class FS50L(py_nexus.Device):
     def __init__(self, serial_port: str, address=0x01):
         super().__init__()
-        self.rtu = py_nexus.ModbusRTUClient(port=serial_port, speed=py_nexus.B9600)
-        self.address = address
+        self.rtu = py_nexus.ModbusRTUClient(server_address=address, port=serial_port, speed=py_nexus.B9600)
         self.frequencyRunning = 0.0
         self.busVoltage = 0.0
         self.outputVoltage = 0.0
@@ -21,8 +20,8 @@ class FS50L(py_nexus.Device):
         self.faultInfo = 0
     
     def update(self):
-        res, err = self.rtu.ReadHoldingRegisters(self.address, 0x3001, 7)
-        if err == py_nexus.ModbusError.NONE:
+        res = self.rtu.ReadHoldingRegisters(0x3001, 7)
+        if self.rtu.error() == py_nexus.ModbusError.NONE:
             self.frequencyRunning = res[0]
             self.busVoltage = res[1] * .1
             self.outputVoltage = res[2] * .1
@@ -41,8 +40,8 @@ class FS50L(py_nexus.Device):
 
         time.sleep(0.001)
 
-        res, err = self.rtu.ReadHoldingRegisters(self.address, 0x8000, 1)
-        if err == py_nexus.ModbusError.NONE:
+        res = self.rtu.ReadHoldingRegisters(0x8000, 1)
+        if self.rtu.error() == py_nexus.ModbusError.NONE:
             self.faultInfo = res[0]
         else:
             self.faultInfo = 0
@@ -53,7 +52,6 @@ class FS50L(py_nexus.Device):
     def json(self) -> str:
         data1 = json.loads(self.rtu.json)
         data2 = {
-            'address': self.address,
             'frequencyRunning': self.frequencyRunning,
             'busVoltage': self.busVoltage,
             'outputVoltage': self.outputVoltage,
@@ -67,56 +65,56 @@ class FS50L(py_nexus.Device):
     
     def post(self, method_name: str, json_request: str) -> str:
         if method_name == 'forward_running':
-            res, err = self.rtu.WriteSingleRegister(self.address, 0x1000, 0x0001)
-            if err == py_nexus.ModbusError.NONE:
+            res = self.rtu.WriteSingleRegister(0x1000, 0x0001)
+            if self.rtu.error() == py_nexus.ModbusError.NONE:
                 return json.dumps({
                     'status': 'success',
                     'message': 'request to forward running'
                 })
         
         if method_name == 'reverse_running':
-            res, err = self.rtu.WriteSingleRegister(self.address, 0x1000, 0x0002)
-            if err == py_nexus.ModbusError.NONE:
+            res = self.rtu.WriteSingleRegister(0x1000, 0x0002)
+            if self.rtu.error() == py_nexus.ModbusError.NONE:
                 return json.dumps({
                     'status': 'success',
                     'message': 'request to reverse running'
                 })
             
         if method_name == 'forward_jog':
-            res, err = self.rtu.WriteSingleRegister(self.address, 0x1000, 0x0003)
-            if err == py_nexus.ModbusError.NONE:
+            res = self.rtu.WriteSingleRegister(0x1000, 0x0003)
+            if self.rtu.error() == py_nexus.ModbusError.NONE:
                 return json.dumps({
                     'status': 'success',
                     'message': 'request to forward jog'
                 })
         
         if method_name == 'reverse_jog':
-            res, err = self.rtu.WriteSingleRegister(self.address, 0x1000, 0x0004)
-            if err == py_nexus.ModbusError.NONE:
+            res = self.rtu.WriteSingleRegister(0x1000, 0x0004)
+            if self.rtu.error() == py_nexus.ModbusError.NONE:
                 return json.dumps({
                     'status': 'success',
                     'message': 'request to reverse jog'
                 })
         
         if method_name == 'free_stop':
-            res, err = self.rtu.WriteSingleRegister(self.address, 0x1000, 0x0005)
-            if err == py_nexus.ModbusError.NONE:
+            res = self.rtu.WriteSingleRegister(0x1000, 0x0005)
+            if self.rtu.error() == py_nexus.ModbusError.NONE:
                 return json.dumps({
                     'status': 'success',
                     'message': 'request to free stop'
                 })
         
         if method_name == 'decelerate_stop':
-            res, err = self.rtu.WriteSingleRegister(self.address, 0x1000, 0x0006)
-            if err == py_nexus.ModbusError.NONE:
+            res = self.rtu.WriteSingleRegister(0x1000, 0x0006)
+            if self.rtu.error() == py_nexus.ModbusError.NONE:
                 return json.dumps({
                     'status': 'success',
                     'message': 'request to decelerate stop'
                 })
         
         if method_name == 'fault_resetting':
-            res, err = self.rtu.WriteSingleRegister(self.address, 0x1000, 0x0007)
-            if err == py_nexus.ModbusError.NONE:
+            res = self.rtu.WriteSingleRegister(0x1000, 0x0007)
+            if self.rtu.error() == py_nexus.ModbusError.NONE:
                 return json.dumps({
                     'status': 'success',
                     'message': 'request to fault resetting'

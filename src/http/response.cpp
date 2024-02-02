@@ -1,6 +1,9 @@
-#include "nexus/http/c_wrapper.h"
-#include "nexus/http/http.h"
+#include "nexus/http/response.h"
 #include <etl/keywords.h>
+
+extern "C" {
+
+typedef void* nexus_http_response_t;
 
 fun static cast(nexus_http_response_t response) {
     return static_cast<httplib::Response*>(response);
@@ -46,3 +49,4 @@ fun nexus_http_response_delete(nexus_http_response_t response) -> void {
     delete cast(response);
 }
 
+}

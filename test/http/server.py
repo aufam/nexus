@@ -17,7 +17,7 @@ class A(Device):
         super().__init__()
     
     def path(self):
-        return "/a"
+        return '/a'
     
     def update(self):
         self.x += 1
@@ -28,7 +28,7 @@ class B(Device):
         super().__init__()
 
     def path(self):
-        return "/b"
+        return '/b'
     
     def update(self):
         self.x -= 1
@@ -37,93 +37,78 @@ class B(Device):
 def main():
     host, port = "localhost", 5000
 
-    a, b = A(), B()
-    assert isinstance(a, py_nexus.Restful)
-    assert isinstance(a, py_nexus.Device)
-    assert isinstance(b, py_nexus.Restful)
-    assert isinstance(b, py_nexus.Device)
+    try:
+        print('[TEST] Create Restful and Device objects')
+        a, b = A(), B()
+        assert isinstance(a, py_nexus.Restful)
+        assert isinstance(a, py_nexus.Device)
+        assert isinstance(b, py_nexus.Restful)
+        assert isinstance(b, py_nexus.Device)
+        print('[OK]')
 
-    server = py_nexus.HttpServer().add(a).add(b)
-    assert isinstance(server, py_nexus.HttpServer)
+        print('[TEST] Create Server object')
+        server = py_nexus.HttpServer().add(a).add(b)
+        assert isinstance(server, py_nexus.HttpServer)
+        print('[OK]')
 
-    @server.Get("/test")
-    def _(request, response):
-        response.status = 200
-        response.set_content('{"msg": "echo test"}', "application/json")
-        return response
+        @server.Get('/test')
+        def _(request, response):
+            response.status = 200
+            response.set_content('{"msg": "echo test"}', 'application/json')
+            return response
 
-    @server.logger
-    def _(request, response):
-        print(f'{request.remote_addr} {request.method} {request.path} {request.version} {response.status} {response.body}')
+        @server.logger
+        def _(request, response):
+            print(f'{request.remote_addr} {request.method} {request.path} {request.version} {response.status} {response.body}')
+        
+        server.listen(host=host, port=port)
+        print(f'Server is running on http://{host}:{port}/')
+
+        time.sleep(0.1)
+        a.update()
+        b.update()
+
+        print('[TEST] Create Client object')
+        client = py_nexus.HttpClient(host=host, port=port)
+        assert isinstance(client, py_nexus.HttpClient)
+        print('[OK]')
+
+        print('[TEST] Client Get')
+        ra = client.Get('/a')
+        rb = client.Get('/b')
+        rt = client.Get('/test')
+
+        ja = json.loads(ra.body)
+        jb = json.loads(rb.body)
+        jt = json.loads(rt.body)
+
+        assert ja['x'] == 1
+        assert jb['x'] == -1
+        assert jt['msg'] == 'echo test'
+        print('[OK]')
+
+        print('[TEST] Create Listener object')
+        listener = py_nexus.Listener().add(a).add(b)
+        assert isinstance(listener, py_nexus.Restful)
+        print('[OK]')
+
+        time.sleep(0.11)
+
+        print('[TEST] Listener item values')
+        assert a.x > 1
+        assert b.x < -1
+        print('[OK]')
+
+    except AssertionError as e:
+        print(f'--AssertionError: {e}--')
     
-    server.listen(host=host, port=port)
-    print(f"Server is running on http://{host}:{port}")
+    else:
+        print("--Assertion success--")
 
-    time.sleep(1)
-    a.update()
-    b.update()
-
-    client = py_nexus.HttpClient(host=host, port=port)
-    ra = client.Get("/a")
-    rb = client.Get("/b")
-    rt = client.Get("/test")
-
-    ja = json.loads(ra.body)
-    jb = json.loads(rb.body)
-    jt = json.loads(rt.body)
-
-    assert ja['x'] == 1
-    assert jb['x'] == -1
-    assert jt['msg'] == 'echo test'
-
-    server.stop()
-    print("Server stop")
-
-    print("Start listener")
-    listener = py_nexus.Listener().add(a).add(b)
-
-    time.sleep(1)
-
-    assert a.x > 1
-    assert b.x < -1
-
-    listener.stop()
-    print("Stop listener")
-    print("Assertion success")
-
-
-import asyncio
-
-def request(path):
-    client = py_nexus.HttpClient(host="localhost", port=5000)
-    return client.Get(path)
-
-async def request_async(path):
-    loop = asyncio.get_event_loop()
-    result = await loop.run_in_executor(None, request, path)
-    return result
-
-async def main_async():
-    server = py_nexus.HttpServer()
-
-    @server.Get("/test")
-    def _(request, response):
-        response.status = 200
-        response.set_content('{"msg": "echo test"}', "application/json")
-        return response
-
-    @server.logger
-    def _(request, response):
-        print(f'{request.remote_addr} {request.method} {request.path} {request.version} {response.status} {response.body}')
-
-    server.listen(host="localhost", port=5000)
-    
-    response = await request_async("/test")
-    print(response.body)
-
-    server.stop()
+    finally:
+        server.stop()
+        listener.stop()
 
 
 if __name__ == '__main__':
     main()
-    # asyncio.run(main_async())

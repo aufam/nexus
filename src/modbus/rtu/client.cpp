@@ -3,17 +3,27 @@
 
 using namespace nexus;
 
-fun modbus::rtu::Client::encode(nexus::byte_view buffer) const -> std::vector<uint8_t> {
-    return modbus::api::encode(buffer);
+modbus::rtu::Client::Client(Args args) 
+    : api::Client(args.server_address)
+    , serial::Hardware::Interface(std::make_shared<serial::Hardware>(args.port, args.speed, args.timeout, std::make_shared<api::Codec>())) 
+{}
+
+modbus::rtu::Client::Client(int server_address, std::shared_ptr<serial::Hardware> ser) 
+    : modbus::api::Client(server_address)
+    , serial::Hardware::Interface(ser, std::make_shared<api::Codec>())
+{}
+
+fun modbus::rtu::Client::request(byte_view buffer) -> byte_view {
+    ser_->sendCodec(codec_, buffer);
+    return ser_->receiveCodec(codec_, [this] (byte_view received_buffer) { return received_buffer[0] == server_address; });
 }
 
-fun modbus::rtu::Client::decode(nexus::byte_view buffer) const -> std::vector<uint8_t> {
-    return modbus::api::decode(buffer);
-}
+modbus::rtu::Client::~Client() {}
 
-fun modbus::rtu::Client::Request(nexus::byte_view buffer) -> std::vector<uint8_t> {
-    this->send(buffer);
-    return this->receiveBytes([addr=buffer[0], fc=buffer[1]] (nexus::byte_view buffer) -> bool {
-        return buffer.len() >= 2 and buffer[0] == addr and buffer[1] == fc;
-    });
+extern "C" {
+    typedef void* nexus_modbus_rtu_client_t;
+
+    nexus_modbus_rtu_client_t nexus_modbus_rtu_client_new(int server_address, const char* port, speed_t speed, int timeout) {
+        return new modbus::rtu::Client(server_address, port, speed, std::chrono::milliseconds(timeout));
+    }
 }

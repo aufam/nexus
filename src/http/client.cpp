@@ -1,11 +1,14 @@
 #include "nexus/http/client.h"
-#include "nexus/http/c_wrapper.h"
 #include <etl/keywords.h>
 
 using namespace Project::nexus;
 
 http::Client::Client(Args args) : httplib::Client(args.host, args.port) {}
 http::Client::Client(Args2 args) : httplib::Client(args.host_port) {}
+
+extern "C" {
+typedef void* nexus_http_client_t;
+typedef void* nexus_http_response_t;
 
 fun static cast(nexus_http_client_t client) {
     return static_cast<nexus::http::Client*>(client);
@@ -66,4 +69,5 @@ fun nexus_http_client_OPTIONS(nexus_http_client_t client, const char* path) -> n
     if (var response = cast(client)->Options(path))
         *res = std::move(*response.operator->());
     return res;
+}
 }

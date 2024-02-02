@@ -28,7 +28,7 @@ public:
     void update() override { --x; }
 };
 
-TEST(Server, server) {
+TEST(http, server) {
     val host = std::string("localhost");
     val port = 5000;
 
@@ -53,7 +53,7 @@ TEST(Server, server) {
     var res = std::async(std::launch::async, [&server, host, port] { return server.listen(host, port); });
     std::cout << "Server is running on http://" << host << ":" << port << std::endl;
 
-    std::this_thread::sleep_for(1s);
+    std::this_thread::sleep_for(1ms);
     a.update();
     b.update();
 
@@ -74,14 +74,12 @@ TEST(Server, server) {
     std::cout << (nexus::await | res ? "Server stop" : "Server fail to start in the first place") << std::endl;
 }
 
-
-TEST(Server, listener) {
+TEST(http, listener) {
     var listener = nexus::abstract::Listener();
-    listener
-        .add(std::make_unique<A>())
-        .add(std::make_unique<B>());
+    listener.interval = 100ms;
+    listener.add(std::make_unique<A>()).add(std::make_unique<B>());
     
-    std::this_thread::sleep_for(1s);
+    std::this_thread::sleep_for(101ms);
 
     val sa = listener[0].json();
     val sb = listener[1].json();
@@ -99,6 +97,6 @@ TEST(Server, listener) {
 
 extern "C" int c_http_server();
 
-TEST(Server, cserver) {
+TEST(http, c_server) {
     EXPECT_EQ(c_http_server(), 0);
 }

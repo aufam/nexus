@@ -1,5 +1,6 @@
-#include "nexus/abstract/c_wrapper.h"
-#include "nexus/http/c_wrapper.h"
+#include "nexus/abstract/device.h"
+#include "nexus/http/server.h"
+#include "nexus/http/client.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,7 +8,7 @@
 #include <unistd.h>
 
 static const char* host = "localhost";
-static int port = 5000;
+static int port = 6000;
 
 typedef struct {
     int x;
@@ -41,12 +42,6 @@ static void updateB(void* member) {
     --(((member_t*) (member))->x);
 }
 
-static nexus_device_t create_device(char *(*path)(void *members), void (*update)(void *members)) {
-    member_t* member = (member_t*) malloc(sizeof(member_t));
-    member->x = 0;
-    return nexus_device_override_new(nexus_restful_override_new(path, json, NULL, NULL, member), update);
-}
-
 static void get_test_handler(nexus_http_request_t request, nexus_http_response_t response) {
     (void) request;
     nexus_http_response_set_status(response, 200);
@@ -59,8 +54,11 @@ static void* server_listen_non_blocking(nexus_http_server_t server) {
 }
 
 int c_http_server() {
-    nexus_device_t a = create_device(pathA, updateA);
-    nexus_device_t b = create_device(pathB, updateB);
+    member_t member_a = {.x=0};
+    member_t member_b = {.x=0};
+
+    nexus_device_t a = nexus_device_override_new(nexus_restful_override_new(pathA, json, NULL, NULL, &member_a), updateA, &member_a);
+    nexus_device_t b = nexus_device_override_new(nexus_restful_override_new(pathB, json, NULL, NULL, &member_b), updateB, &member_b);
 
     nexus_http_server_t server = nexus_http_server_new();
     nexus_http_server_add_restful(server, a);
@@ -71,7 +69,7 @@ int c_http_server() {
     pthread_create(&thd, NULL, server_listen_non_blocking, server);
     printf("Server is running on http://%s:%d/\n", host, port);
 
-    sleep(1);
+    usleep(1e3);
     nexus_device_update(a);
     nexus_device_update(b);
 
@@ -93,7 +91,7 @@ int c_http_server() {
     
     nexus_http_client_delete(client);
     nexus_http_server_delete(server);
-    nexus_device_override_delete(a);
-    nexus_device_override_delete(b);
+    // nexus_device_delete(a);
+    // nexus_device_delete(b);
     return 0;
 }

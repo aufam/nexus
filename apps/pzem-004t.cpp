@@ -15,16 +15,12 @@ using namespace std::literals;
 
 class PZEM : virtual public nexus::modbus::rtu::Client, virtual public nexus::abstract::Device {
 public:
-    PZEM(std::string port=nexus::modbus::rtu::Client::Default::port, int address = 0xF8) 
-        : nexus::modbus::rtu::Client(port, B9600) 
-        , address(address) 
-        {}
-    
+    PZEM(int address = 0xF8, std::string port = "auto") : nexus::modbus::rtu::Client(address, port, B9600) {}
     virtual ~PZEM() {}
 
     void update() override {
-        auto [res, err] = this->ReadInputRegisters(address, 0x0000, 10);
-        if (err == nexus::modbus::Error::NONE) {
+        auto res = this->ReadInputRegisters(0x0000, 10);
+        if (error() == nexus::modbus::Error::NONE) {
             voltage = res[0] * .1f;
             current = (res[1] | res[2] << 16) * .001f;
             power = (res[3] | res[4] << 16) * .1f;
@@ -42,9 +38,9 @@ public:
             alarm = false;
         }
 
-        auto [res2, err2] = this->ReadHoldingRegisters(address, 0x0001, 1);
-        if (err2 == nexus::modbus::Error::NONE) {
-            alarmThreshold = res2[0];
+        res = this->ReadHoldingRegisters(0x0001, 1);
+        if (error() == nexus::modbus::Error::NONE) {
+            alarmThreshold = res[0];
         } else {
             alarmThreshold = NAN;
         }
@@ -56,16 +52,15 @@ public:
     
     std::string json() const override { 
         return nexus::tools::json_concat(
-            nexus::serial::Serial::json(), 
+            nexus::modbus::rtu::Client::json(), 
             "{"
-                "\"address\": " + std::to_string(address) + ", "
                 "\"voltage\": " + nexus::tools::to_string(voltage, 1) + ", "
                 "\"current\": " + nexus::tools::to_string(current, 3) + ", "
                 "\"power\": " + nexus::tools::to_string(power, 1) + ", "
                 "\"energy\": " + nexus::tools::to_string(energy, 1) + ", "
                 "\"frequency\": " + nexus::tools::to_string(frequency, 1) + ", "
                 "\"powerFactor\": " + nexus::tools::to_string(powerFactor, 2) + ", "
-                "\"alarm\": " + std::string(alarm ? "true" : "false") + ", "
+                "\"alarm\": " + nexus::tools::to_string(alarm) + ", "
                 "\"alarmThreshold\": " + nexus::tools::to_string(alarmThreshold, 1) +
             "}"
         ); 
@@ -73,14 +68,12 @@ public:
 
     std::string post(std::string_view method_name, std::string_view json_request) override {
         if (method_name == "reset_energy") {
-            uint8_t buf[] = {uint8_t(address), 0x42};
-            this->Request(buf);
+            this->request({uint8_t(server_address), 0x42});
             return nexus::tools::json_response_status_success("request to reset energy");
         }
 
         if (method_name == "calibrate") {
-            uint8_t buf[] = {uint8_t(address), 0x41, 0x37, 0x21};
-            this->Request(buf);
+            this->request({uint8_t(server_address), 0x41, 0x37, 0x21});
             return nexus::tools::json_response_status_success("request to calibrate");
         }
 
@@ -90,20 +83,11 @@ public:
     std::string patch(std::string_view json_string) override {
         auto response = std::string();
         auto json = nexus::tools::json_parse(json_string);
-        auto ad = json["address"];
         auto at = json["alarmThreshold"];
-
-        if (ad.is_number()) {
-            auto [res, err] = this->WriteSingleRegister(address, 0x0001, ad.to_int());
-            if (err == nexus::modbus::Error::NONE) {
-                address = res;
-            }
-            response = nexus::tools::json_concat(response, "\"address\": " + std::to_string(address) + "}");
-        }
         
         if (at.is_number()) {
-            auto [res, err] = this->WriteSingleRegister(address, 0x0002, at.to_int());
-            if (err == nexus::modbus::Error::NONE) {
+            auto res = this->WriteSingleRegister(0x0002, at.to_int());
+            if (error() == nexus::modbus::Error::NONE) {
                 alarmThreshold = res;
             }
             response = nexus::tools::json_concat(response, "\"alarmThreshold\": " + std::to_string(alarmThreshold) + "}");
@@ -114,7 +98,6 @@ public:
             : nexus::tools::json_concat(nexus::tools::json_response_status_success("success update parameter"), response);
     }
 
-    int address;
     float voltage;
     float current;
     float power;
@@ -163,7 +146,7 @@ int main(int argc, char* argv[]) {
     
     var listener = nexus::abstract::Listener();
     listener.interval = 1s;
-    listener.add(std::make_unique<PZEM>(serial_port, device_address));
+    listener.add(std::make_unique<PZEM>(device_address, serial_port));
 
     var server = nexus::http::Server();
     server.add(listener[0]);

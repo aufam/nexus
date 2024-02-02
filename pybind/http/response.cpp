@@ -1,12 +1,12 @@
 #include "../pybind.h"
-#include "nexus/http/http.h"
+#include "nexus/http/response.h"
 #include <etl/keywords.h>
 
 namespace pybind11 { 
-    void bindResponse(module_& m);
+    void bindHttpResponse(module_& m);
 }
 
-void pybind11::bindResponse(module_& m) {
+void pybind11::bindHttpResponse(module_& m) {
     class_<httplib::Response>(m, "HttpResponse", "HTTP Response")
     .def_readwrite("version",&httplib::Response::version)
     .def_readwrite("status", &httplib::Response::status)

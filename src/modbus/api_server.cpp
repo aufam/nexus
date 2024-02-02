@@ -1,7 +1,58 @@
-#include "nexus/modbus/api.h"
+#include "nexus/modbus/api_server.h"
+#include "nexus/tools/json.h"
+#include "nexus/tools/to_string.h"
+#include <etl/scope_exit.h>
 #include <etl/keywords.h>
 
 using namespace nexus;
+
+fun modbus::api::Server::json() const -> std::string {
+    return  "{"
+        "\"isRunning\": " + tools::to_string(isRunning()) + ", "
+        "\"serverAddress\": " + std::to_string(server_address) + ", "
+        "\"coils\": " + tools::to_string(coil_getters) + ", "
+        "\"discreteInputs\": " + tools::to_string(discrete_input_getters) + ", "
+        "\"analogInputs\": " + tools::to_string(analog_input_getters) + ", "
+        "\"holdingRegisters\": " + tools::to_string(holding_register_getters) + ", "
+        "\"exceptionStatus\": " + tools::to_string(exception_status_getter) + ", "
+        "\"diagnostic\": " + tools::to_string(diagnostic_getters) + 
+    "}";
+}
+
+fun modbus::api::Server::patch(std::string_view json_request) -> std::string {
+    val json = tools::json_parse(json_request);
+
+    val function_code = json["function_code"];
+    val register_addresses = json["register_addresses"];
+    val values = json["values"];
+
+    if (not register_addresses.is_list() or not values.is_list())
+        return tools::json_response_status_fail_mismatch_value_type();
+
+    if (function_code.dump() == "\"WRITE_MULTIPLE_REGISTERS\"") {
+        try {
+            for (var [reg, value] in etl::zip(register_addresses, values))
+                holding_register_setters.at(reg.to_int())(value.to_int());
+
+            return tools::json_response_status_success("Write Multiple Registers");
+        } catch (const std::out_of_range&) {
+            return tools::json_response_status_fail("Unknown register address");;
+        }
+    }
+
+    if (function_code.dump() == "\"WRITE_MULTIPLE_COILS\"") {
+        try {
+            for (var [reg, value] in etl::zip(register_addresses, values))
+                holding_register_setters.at(reg.to_int())(value.to_int());
+
+            return tools::json_response_status_success("Write Multiple Coils");
+        } catch (const std::out_of_range&) {
+            return tools::json_response_status_fail("Unknown register address");;
+        }
+    }
+
+    return tools::json_response_status_fail_unknown_key();
+}
 
 fun modbus::api::Server::CoilGetter(uint16_t register_address, std::function<bool()> getter) -> Server& {
     coil_getters[register_address] = std::move(getter);
@@ -43,7 +94,7 @@ fun modbus::api::Server::DiagnosticGetter(uint8_t sub_function, std::function<st
     return *this;
 }
 
-fun modbus::api::Server::callback(uint8_t server_address, nexus::byte_view buffer) const -> std::vector<uint8_t> {
+fun modbus::api::Server::process_callback(nexus::byte_view buffer) const -> std::vector<uint8_t> {
     if (buffer.len() < 2)
         return {};
     
@@ -288,5 +339,54 @@ fun modbus::api::Server::write_multiple_registers_callback(nexus::byte_view buff
         return res;
     } catch (const std::out_of_range&) {
         return {};
+    }
+}
+
+extern "C" {
+
+    typedef void* nexus_modbus_server_t;
+
+    void nexus_modbus_server_delete(nexus_modbus_server_t server) {
+        delete static_cast<modbus::api::Server*>(server);
+    }
+
+    int nexus_modbus_server_is_running(nexus_modbus_server_t server) {
+        return static_cast<modbus::api::Server*>(server)->isRunning();
+    }
+
+    void nexus_modbus_server_coil_getter(nexus_modbus_server_t server, uint16_t register_address, int (*getter)(void* arg), void* arg) {
+        static_cast<modbus::api::Server*>(server)->CoilGetter(register_address, [getter, arg]() -> bool { return getter(arg); });
+    }
+
+    void nexus_modbus_server_coil_setter(nexus_modbus_server_t server, uint16_t register_address, void (*setter)(void* arg, int value), void* arg) {
+        static_cast<modbus::api::Server*>(server)->CoilSetter(register_address, [setter, arg] (bool value) { return setter(arg, value); });
+    }
+
+    void nexus_modbus_server_holding_register_getter(nexus_modbus_server_t server, uint16_t register_address, uint16_t (*getter)(void* arg), void* arg) {
+        static_cast<modbus::api::Server*>(server)->HoldingRegisterGetter(register_address, [getter, arg]() -> uint16_t { return getter(arg); });
+    }
+
+    void nexus_modbus_server_holding_register_setter(nexus_modbus_server_t server, uint16_t register_address, void (*setter)(void* arg, uint16_t value), void* arg) {
+        static_cast<modbus::api::Server*>(server)->HoldingRegisterSetter(register_address, [setter, arg] (uint16_t value) { return setter(arg, value); });
+    }
+
+    void nexus_modbus_server_discrete_input_getter(nexus_modbus_server_t server, uint16_t register_address, int (*getter)(void* arg), void* arg) {
+        static_cast<modbus::api::Server*>(server)->DiscreteInputGetter(register_address, [getter, arg]() -> bool { return getter(arg); });
+    }
+
+    void nexus_modbus_server_analog_input_getter(nexus_modbus_server_t server, uint16_t register_address, uint16_t (*getter)(void* arg), void* arg) {
+        static_cast<modbus::api::Server*>(server)->AnalogInputGetter(register_address, [getter, arg]() -> uint16_t { return getter(arg); });
+    }
+
+    void nexus_modbus_server_exception_status_getter(nexus_modbus_server_t server, uint8_t (*getter)(void* arg), void* arg) {
+        static_cast<modbus::api::Server*>(server)->ExceptionStatusGetter([getter, arg] { return getter(arg); });
+    }
+
+    void nexus_modbus_server_diagnostic_getter(nexus_modbus_server_t server, uint8_t sub_function, uint8_t* (*getter)(void* arg, size_t* length), void* arg, size_t* length) {
+        static_cast<modbus::api::Server*>(server)->DiagnosticGetter(sub_function, [getter, arg, length]() -> std::vector<uint8_t> { 
+            var res = getter(arg, length); 
+            var se = etl::ScopeExit([res] { ::free(res); });
+            return {res, res + *length};
+        });
     }
 }

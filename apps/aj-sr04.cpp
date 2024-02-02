@@ -1,6 +1,6 @@
 #include "nexus/abstract/device.h"
 #include "nexus/abstract/listener.h"
-#include "nexus/serial/serial.h"
+#include "nexus/serial/software.h"
 #include "nexus/http/server.h"
 
 #include "nexus/tools/filesystem.h"
@@ -13,22 +13,26 @@
 
 using namespace std::literals;
 
-class AJSR04 : virtual public nexus::abstract::Device, virtual public nexus::serial::Serial {
+class AJSR04Codec : public nexus::abstract::Codec {
 public:
-    AJSR04(std::string port) : nexus::serial::Serial::Serial(port, B9600) {}
-    
-    std::vector<uint8_t> decode(nexus::byte_view buffer) const noexcept override {
+    nexus::byte_view encode(nexus::byte_view buffer) const override { return buffer; }
+    nexus::byte_view decode(nexus::byte_view buffer) const override {
         return buffer.len() >= 10 
             && buffer[0] == 'G' && buffer[1] == 'a' && buffer[2] == 'p' && buffer[3] == '=' 
             && buffer[-3] == 0x0d && buffer[-2] == 0x0a && buffer[-1] == 0x0d 
             ? std::vector<uint8_t>(buffer.begin() + 4, buffer.end())
             : std::vector<uint8_t>();
     }
+};
+
+class AJSR04 : virtual public nexus::abstract::Device, virtual public nexus::serial::Software {
+public:
+    AJSR04(std::string port) : nexus::serial::Software(port, B9600, 1s, std::make_shared<AJSR04Codec>()) {}
 
     void update() override {
         uint8_t dummy[] = {0x01};
         send(nexus::byte_view{dummy, sizeof(dummy)});
-        auto response = receiveText();
+        auto response = receive();
         distance = etl::string_view(response.data(), response.size()).to_float() / 1000.f;
         std::cout << "Distance: " << distance << " m" << std::endl;
     }
@@ -39,13 +43,13 @@ public:
     
     std::string json() const override { 
         return nexus::tools::json_concat(
-            nexus::serial::Serial::json(), 
+            nexus::serial::Software::json(), 
             "{\"distance\": " + nexus::tools::to_string(distance, 3) + "}"
         ); 
     }
 
-    using nexus::serial::Serial::post;
-    using nexus::serial::Serial::patch;
+    using nexus::serial::Software::post;
+    using nexus::serial::Software::patch;
 
     float distance;
 };

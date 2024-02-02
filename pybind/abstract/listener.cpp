@@ -1,7 +1,6 @@
 #include "../pybind.h"
 #include "nexus/abstract/listener.h"
 #include <iostream>
-#include <future>
 #include <etl/keywords.h>
 
 using namespace std::literals;

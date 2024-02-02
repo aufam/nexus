@@ -1,8 +1,9 @@
 #ifndef PROJECT_NEXUS_ABSTRACT_LISTENER_H
 #define PROJECT_NEXUS_ABSTRACT_LISTENER_H
 
-#ifdef __cplusplus
 #include "nexus/abstract/device.h"
+
+#ifdef __cplusplus
 #include <memory>
 #include <vector>
 #include <thread>
@@ -135,7 +136,64 @@ namespace Project::nexus::abstract {
     };
 }
 
+namespace Project::nexus::abstract::c_wrapper { 
+    class Listener : virtual public nexus::abstract::Listener {
+    public:
+        Listener() = default;
+        virtual ~Listener();
+
+        std::string path() const override;
+        std::string json() const override;
+        std::string post(std::string_view method_name, std::string_view json_request) override;
+        std::string patch(std::string_view json_request) override;
+
+        abstract::Restful* restful;
+        void* c_members;
+    };
+}
 #else
-#include "nexus/abstract/c_wrapper.h"
+#include <stdint.h>
+#include <stddef.h>
+
+/// Opaque handle representing a Nexus listener object.
+typedef void* nexus_listener_t;
+
+/// Create a new Listener.
+/// @return A pointer to the newly created Listener object.
+nexus_listener_t nexus_listener_new();
+
+/// Create a new Listener object with overridden functions.
+/// @param restful A pointer to the Restful override. Set to null as default
+/// @return A pointer to the newly created Listener object.
+nexus_listener_t nexus_listener_override_new(
+    nexus_restful_t restful,
+    void* members
+);
+
+/// @brief Delete a Listener object with overridden functions.
+/// @param listener A pointer to a Listener object.
+void nexus_listener_delete(nexus_listener_t listener);
+
+/// Adds a device to a listener.
+/// @param listener Handle to the Nexus listener object.
+/// @param device Handle to the Nexus device object to add.
+void nexus_listener_add(nexus_device_t listener, nexus_device_t device);
+
+/// Removes a device from a listener.
+/// @param listener Handle to the Nexus listener object.
+/// @param index Index of the device to remove.
+void nexus_listener_remove(nexus_device_t listener, int index);
+
+/// Retrieves the number of devices in a listener.
+/// @param listener Handle to the Nexus listener object.
+/// @return Number of devices in the listener.
+size_t nexus_listener_len(nexus_device_t listener);
+
+/// Retrieves a device from a listener by index.
+/// @param listener Handle to the Nexus listener object.
+/// @param index Index of the device to retrieve.
+/// @return Handle to the device, or NULL if not found.
+nexus_device_t nexus_listener_get_device(nexus_device_t listener, int index);
+
 #endif
 #endif // PROJECT_NEXUS_ABSTRACT_LISTENER_H

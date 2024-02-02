@@ -7,10 +7,10 @@ from math import nan
 
 
 class PZEM(py_nexus.Device):
-    def __init__(self, serial_port: str, address=0xF8):
+    def __init__(self, server_address=0xF8, serial_port="auto"):
         super().__init__()
-        self.rtu = py_nexus.ModbusRTUClient(port=serial_port, speed=py_nexus.B9600)
-        self.address = address
+        self.rtu = py_nexus.ModbusRTUClient(server_address=server_address, port=serial_port, speed=py_nexus.B9600)
+        self.address = server_address
         self.voltage = 0.0
         self.current = 0.0
         self.power = 0.0
@@ -21,8 +21,8 @@ class PZEM(py_nexus.Device):
         self.alarmThreshold = 0.0
     
     def update(self):
-        res, err = self.rtu.ReadInputRegisters(self.address, 0x0000, 10)
-        if err == py_nexus.ModbusError.NONE:
+        res = self.rtu.ReadInputRegisters(0x0000, 10)
+        if self.rtu.error() == py_nexus.ModbusError.NONE:
             self.voltage = res[0] * .1
             self.current = (res[1] | res[2] << 16) * .001
             self.power = (res[3] | res[4] << 16) * .1
@@ -39,8 +39,8 @@ class PZEM(py_nexus.Device):
             self.powerFactor = nan
             self.alarm = False
 
-        res, err = self.rtu.ReadHoldingRegisters(self.address, 0x0001, 1)
-        if err == py_nexus.ModbusError.NONE:
+        res = self.rtu.ReadHoldingRegisters(0x0001, 1)
+        if self.rtu.error() == py_nexus.ModbusError.NONE:
             self.alarmThreshold = res[0]
         else:
             self.alarmThreshold = nan
@@ -49,9 +49,8 @@ class PZEM(py_nexus.Device):
         return '/pzem-004t'
 
     def json(self) -> str:
-        data1 = json.loads(self.rtu.json)
+        data1 = json.loads(self.rtu.json())
         data2 = {
-            'address': self.address,
             'voltage': self.voltage,
             'current': self.current,
             'power': self.power,
@@ -86,15 +85,15 @@ class PZEM(py_nexus.Device):
 
         if 'address' in request:
             new_address = request['address']
-            res, err = self.rtu.WriteSingleRegister(self.address, 0x0001, new_address)
-            if err == py_nexus.ModbusError.NONE:
+            self.rtu.WriteSingleRegister(0x0001, new_address)
+            if self.rtu.error() == py_nexus.ModbusError.NONE:
                 self.address = new_address
             response['address'] = new_address
 
         if 'alarmThreshold' in request:
             alarmThreshold = request['alarmThreshold']
-            res, err = self.rtu.WriteSingleRegister(self.address, 0x0002, alarmThreshold)
-            if err == py_nexus.ModbusError.NONE:
+            self.rtu.WriteSingleRegister(0x0002, alarmThreshold)
+            if self.rtu.error() == py_nexus.ModbusError.NONE:
                 self.alarmThreshold = alarmThreshold
             response['alarmThreshold'] = alarmThreshold
 
@@ -110,7 +109,7 @@ class PZEM(py_nexus.Device):
     
 
 def main(host, port, page, serial_port, device_address):
-    pzem = PZEM(serial_port=serial_port, address=device_address)
+    pzem = PZEM(device_address, serial_port)
     listener = py_nexus.Listener()
     listener.add(pzem)
     listener.interval = datetime.timedelta(seconds=1)

@@ -1,7 +1,6 @@
 #include "nexus/abstract/listener.h"
 #include "nexus/tools/json.h"
 #include "nexus/tools/check_index.h"
-#include "nexus/abstract/c_wrapper.h"
 #include "helper.ipp"
 #include <etl/keywords.h>
 
@@ -106,53 +105,52 @@ fun abstract::Listener::end() -> iterator<Device> {
     return { devices, (int) len() };
 }
 
-cwrapper::Listener::~Listener() { delete restful; }
-
-fun cwrapper::Listener::path() const -> std::string { 
-    return get_restful_response(restful->cpath, restful->cmembers); 
+abstract::c_wrapper::Listener::~Listener() { 
+    delete restful; 
 }
 
-fun cwrapper::Listener::json() const -> std::string { 
-    auto res = get_restful_response(restful->cjson, restful->cmembers); 
-    if (res.empty()) res = abstract::Listener::json();
-    return res;
+fun abstract::c_wrapper::Listener::path() const -> std::string { 
+    return restful ? restful->path() : abstract::Listener::path(); 
 }
 
-fun cwrapper::Listener::post(std::string_view method_name, std::string_view json_request) -> std::string {
-    auto res = get_restful_response(restful->cpost, restful->cmembers, method_name.data(), json_request.data());
-    if (res.empty()) res = abstract::Listener::post(method_name, json_request);
-    return res;
+fun abstract::c_wrapper::Listener::json() const -> std::string { 
+    return restful ? restful->json() : abstract::Listener::json(); 
 }
 
-fun cwrapper::Listener::patch(std::string_view json_request) -> std::string {
-    return get_restful_response(restful->cpatch, restful->cmembers, json_request.data());
+fun abstract::c_wrapper::Listener::post(std::string_view method_name, std::string_view json_request) -> std::string {
+    return restful ? restful->post(method_name, json_request) : abstract::Listener::post(method_name, json_request);
+}
+
+fun abstract::c_wrapper::Listener::patch(std::string_view json_request) -> std::string {
+    return restful ? restful->patch(json_request) : abstract::Listener::patch(json_request);
 }
 
 extern "C" {
+    typedef void* nexus_listener_t;
+    typedef void* nexus_device_t;
+    typedef void* nexus_restful_t;
+
     fun static cast(nexus_listener_t listener) { 
-        return static_cast<nexus::abstract::Listener*>(listener); 
+        return static_cast<abstract::Listener*>(listener); 
     }
 
     fun nexus_listener_new() -> nexus_listener_t {
-        return new nexus::abstract::Listener();
+        return new abstract::Listener();
     }
 
-    fun nexus_listener_delete(nexus_listener_t listener) -> void {
-        delete cast(listener);
-    }
-
-    fun nexus_listener_override_new(nexus_restful_t restful) -> nexus_listener_t {
-        var res = new nexus::cwrapper::Listener();
-        res->restful = static_cast<nexus::cwrapper::Restful*>(restful);
+    fun nexus_listener_override_new(nexus_restful_t restful, void* members) -> nexus_listener_t {
+        var res = new abstract::c_wrapper::Listener();
+        res->restful = static_cast<abstract::Restful*>(restful);
+        res->c_members = members;
         return res;
     }
 
     fun nexus_listener_override_delete(nexus_listener_t listener) -> void {
-        delete static_cast<nexus::cwrapper::Listener*>(listener);
+        delete cast(listener);
     }
 
     fun nexus_listener_add(nexus_listener_t listener, nexus_device_t device) -> void {
-        cast(listener)->add(std::unique_ptr<nexus::abstract::Device>(static_cast<nexus::abstract::Device*>(device)));
+        cast(listener)->add(std::unique_ptr<abstract::Device>(static_cast<nexus::abstract::Device*>(device)));
     }
 
     fun nexus_listener_remove(nexus_listener_t listener, int index) -> void {

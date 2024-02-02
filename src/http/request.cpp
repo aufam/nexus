@@ -1,6 +1,8 @@
-#include "nexus/http/c_wrapper.h"
-#include "nexus/http/http.h"
+#include "nexus/http/request.h"
 #include <etl/keywords.h>
+
+extern "C" {
+typedef const void* nexus_http_request_t;
 
 fun static cast_request(nexus_http_request_t request) {
     return static_cast<const httplib::Request*>(request);
@@ -40,4 +42,5 @@ fun nexus_http_request_has_header(nexus_http_request_t request, const char* key)
 
 fun nexus_http_request_get_header_value(nexus_http_request_t request, const char* key) -> const char* {
     return cast_request(request)->get_header_value(key).c_str();
+}
 }

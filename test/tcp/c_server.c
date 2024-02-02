@@ -7,7 +7,7 @@
 #include <unistd.h>
 
 static const char* host = "127.0.0.1";
-static int port = 5000;
+static int port = 6004;
 
 static uint8_t* callback(const uint8_t* request, size_t* length) {
     uint8_t* response = (uint8_t*) malloc(*length);
@@ -33,19 +33,20 @@ int c_tcp_server() {
     pthread_create(&thd, NULL, server_listen_non_blocking, server);
     printf("Server is running on http://%s:%d/\n", host, port);
 
-    sleep(1);
+    usleep(1e3);
 
-    nexus_tcp_client_t client = nexus_tcp_client_new(host, port);
+    nexus_tcp_client_t client = nexus_tcp_client_new(host, port, 1000);
     const char req[] = "test";
     size_t length = sizeof(req);
-    uint8_t* res = nexus_tcp_client_request(client, (const uint8_t*) req, &length, 100);
+    uint8_t* res = nexus_client_request(client, (const uint8_t*) req, &length);
     printf("Response: %.*s\n", (int) length, (const char*) res);
+    printf("length: %d\n", (int) length);
     free(res);
 
     nexus_tcp_server_stop(server);
     pthread_join(thd, NULL);
     
-    nexus_tcp_client_delete(client);
+    nexus_client_delete(client);
     nexus_tcp_server_delete(server);
     return 0;
 }

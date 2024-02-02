@@ -1,12 +1,12 @@
 #include "../pybind.h"
-#include "nexus/http/http.h"
+#include "nexus/http/request.h"
 #include <etl/keywords.h>
 
 namespace pybind11 { 
-    void bindRequest(module_& m);
+    void bindHttpRequest(module_& m);
 }
 
-void pybind11::bindRequest(module_& m) {
+void pybind11::bindHttpRequest(module_& m) {
     class_<httplib::Request>(m, "HttpRequest", "HTTP Request")
     .def_readwrite("method", &httplib::Request::method)
     .def_readwrite("version", &httplib::Request::version)

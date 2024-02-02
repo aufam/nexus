@@ -1,50 +1,42 @@
 #ifndef PROJECT_NEXUS_MODBUS_RTU_CLIENT_H
 #define PROJECT_NEXUS_MODBUS_RTU_CLIENT_H
 
+#include "nexus/modbus/api_client.h"
+#include "nexus/serial/hardware.h"
+
 #ifdef __cplusplus
-#include "nexus/modbus/api.h"
-#include "nexus/serial/serial.h"
 
 namespace Project::nexus::modbus::rtu {
 
-    class Client : public serial::Serial, public modbus::api::Client {
+    class Client : public modbus::api::Client, public serial::Hardware::Interface {
     public:
-        using serial::Serial::Serial;
-        virtual ~Client() {}
+        struct Args { 
+            int server_address;
+            std::string port; 
+            speed_t speed;
+            std::chrono::milliseconds timeout=std::chrono::milliseconds(100); 
+        };
 
-        std::string path() const override { return "/modbus_rtu_client"; };
-        // std::string post(std::string_view method_name, std::string_view json_request) override;
+        Client(int server_address, std::string port, speed_t speed, std::chrono::milliseconds timeout=std::chrono::milliseconds(100))
+            : Client(Args{server_address, port, speed, timeout}) {}
         
-        /// Encode the raw bytes.
-        /// @return Encoded message.
-        std::vector<uint8_t> encode(nexus::byte_view buffer) const override;
+        Client(int server_address, std::shared_ptr<serial::Hardware> ser);
+        explicit Client(Args args);
+        virtual ~Client();
 
-        /// Decode the raw bytes.
-        /// @return Decoded message.
-        std::vector<uint8_t> decode(nexus::byte_view buffer) const override;
+        std::string path() const override { return "/modbus_rtu_client"; }
 
-        // expose
-        using modbus::api::Client::ReadCoils;
-        using modbus::api::Client::ReadDiscreteInputs;
-        using modbus::api::Client::ReadHoldingRegisters;
-        using modbus::api::Client::ReadInputRegisters;
-        using modbus::api::Client::WriteSingleCoil;
-        using modbus::api::Client::WriteSingleRegister;
-        using modbus::api::Client::ReadExceptionStatus;
-        using modbus::api::Client::Diagnostic;
-        using modbus::api::Client::WriteMultipleCoils;
-        using modbus::api::Client::WriteMultipleRegisters;
-        std::vector<uint8_t> Request(nexus::byte_view buffer) override;
-        
-    protected:
-        // Hide
-        using serial::Serial::send;
-        using serial::Serial::receiveText;
-        using serial::Serial::receiveBytes;
-        using serial::Serial::addCallback;
+        void reconnect() override { ser_->reconnect(); }
+        void disconnect() override { ser_->disconnect();  }
+        bool isConnected() const override { return ser_->isConnected(); }
+
+        nexus::byte_view request(nexus::byte_view buffer) override;
     };
 }
 
 #else
+typedef void* nexus_modbus_rtu_client_t;
+
+nexus_modbus_rtu_client_t nexus_modbus_rtu_client_new(int server_address, const char* port, speed_t speed, int timeout);
 #endif
 #endif // PROJECT_NEXUS_MODBUS_RTU_CLIENT_H

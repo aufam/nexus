@@ -19,8 +19,8 @@ def main():
         return
     
     int_list = hex_args_to_int_list(hex_args)
-    encoded = py_nexus.ModbusEncode(int_list)
-    print(' '.join([f'{value:02x}' for value in encoded]))
+    encoded = py_nexus.ModbusCodec().encode(py_nexus.ByteView(int_list))
+    print(' '.join([f'{value:02x}' for value in encoded.to_vector()]))
 
 if __name__ == "__main__":
     main()

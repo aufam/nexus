@@ -16,9 +16,9 @@ target_include_directories(test_all PRIVATE
 )
 
 target_compile_options(test_all PRIVATE 
-	-Wno-literal-suffix 
 	-Wall 
 	-Wextra 
+	$<$<COMPILE_LANGUAGE:CXX>:-Wno-literal-suffix>
 )
 
 target_link_libraries(test_all PRIVATE

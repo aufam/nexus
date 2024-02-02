@@ -7,7 +7,7 @@ int main(int argc, char* argv[]) {
         sscanf(argv[i], "%02hhx", &buffer[i - 1]);
     }
 
-    auto encoded = nexus::modbus::api::encode(buffer);
+    auto encoded = nexus::modbus::api::Codec().encode(buffer);
     for (auto byte in encoded) {
         printf("%02hhx ", byte);
     }

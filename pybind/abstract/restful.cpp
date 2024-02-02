@@ -28,21 +28,27 @@ namespace pybind11 {
 void pybind11::bindRestful(module_& m) {
     class_<nexus::abstract::Restful, Restful>(m, "Restful", "Abstract Restful")
     .def(init<>())
-    .def_property_readonly("path", 
+    .def("path", 
         &nexus::abstract::Restful::path,
         "Retrieves the object name."
     )
-    .def_property_readonly("json",
+    .def("json",
         &nexus::abstract::Restful::json,
         "Converts the object's data to a JSON string representation."
     )
     .def("patch",
-        &nexus::abstract::Restful::patch,
+        [] (nexus::abstract::Restful& self, std::string_view json_string) { 
+            gil_scoped_release gil_release; 
+            return self.patch(json_string); 
+        },
         arg("json_string"),
         "Patches (updates) certain parameters on the object."
     )
     .def("post",
-        &nexus::abstract::Restful::post,
+        [] (nexus::abstract::Restful& self, std::string_view method_name, std::string_view json_string) { 
+            gil_scoped_release gil_release; 
+            return self.post(method_name, json_string); 
+        },
         arg("method_name"),
         arg("json_string"),
         "Posts a request to invoke a method on the object."

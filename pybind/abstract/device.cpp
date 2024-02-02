@@ -32,7 +32,7 @@ void pybind11::bindDevice(module_& m) {
     class_<nexus::abstract::Device, Device, nexus::abstract::Restful>(m, "Device", "Abstract Device")
     .def(init<>())
     .def("update",
-        &nexus::abstract::Device::update,
+        [] (nexus::abstract::Device& self) { gil_scoped_release gil_release; self.update(); },
         "Updates all device parameters."
     );
 }

@@ -5,24 +5,28 @@ import time
 import datetime
 
 
+class Codec(py_nexus.Codec):
+    def __init__(self):
+        super().__init__()
+    
+    def decode(self, buffer):
+        return buffer[4:] \
+            if len(buffer) >= 10 \
+                and buffer[0] == ord('G') and buffer[1] == ord('a') and buffer[2] == ord('p') and buffer[3] == ord('=') \
+                and buffer[-1] == 0x0d \
+            else []
+
+
 class AJSR04(py_nexus.Device):
     def __init__(self, serial_port: str):
         super().__init__()
         self.distance = 0
-        self.serial = py_nexus.Serial(port=serial_port, speed=py_nexus.B9600)
-
-        @self.serial.decode_override
-        def _(buffer):
-            return buffer[4:] \
-                if len(buffer) >= 10 \
-                    and buffer[0] == ord('G') and buffer[1] == ord('a') and buffer[2] == ord('p') and buffer[3] == ord('=') \
-                    and buffer[-1] == 0x0d \
-                else []
+        self.serial = py_nexus.SerialHardware(port=serial_port, speed=py_nexus.B9600, timeout=datetime.timedelta(seconds=1), codec=Codec())
     
     def update(self):
         try:
             self.serial.send(text='1')
-            response: str = self.serial.receiveText()
+            response: str = self.serial.receive().to_string()
             # Find the index 
             equals_index = response.find('=')
             mm_index = response.find('mm')

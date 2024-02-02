@@ -33,9 +33,7 @@ void pybind11::bindTCPServer(module_& m) {
     )
     .def("listen",         
         [] (nexus::tcp::Server& self, const std::string& host, int port) {
-            std::thread([&self, host, port] {
-                self.listen(host, port);
-            }).detach();
+            std::thread([&self, host, port] { self.listen(host, port); }).detach();
         },
         arg("host"),
         arg("port"),

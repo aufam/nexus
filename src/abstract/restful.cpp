@@ -1,34 +1,35 @@
 #include "nexus/abstract/restful.h"
-#include "nexus/abstract/c_wrapper.h"
 #include "helper.ipp"
 #include <etl/keywords.h>
 
 using namespace nexus;
 
-cwrapper::Restful::~Restful() {
-    if (cmembers) {
-        ::free(cmembers);
-        cmembers = nullptr;
+abstract::c_wrapper::Restful::~Restful() {
+    if (c_members) {
+        ::free(c_members);
+        c_members = nullptr;
     }
 }
 
-fun cwrapper::Restful::path() const -> std::string { 
-    return get_restful_response(cpath, cmembers); 
+fun abstract::c_wrapper::Restful::path() const -> std::string { 
+    return get_restful_response(c_path, c_members); 
 }
 
-fun cwrapper::Restful::json() const -> std::string { 
-    return get_restful_response(cjson, cmembers); 
+fun abstract::c_wrapper::Restful::json() const -> std::string { 
+    return get_restful_response(c_json, c_members); 
 }
 
-fun cwrapper::Restful::post(std::string_view method_name, std::string_view json_request) -> std::string {
-    return get_restful_response(cpost, cmembers, method_name.data(), json_request.data());
+fun abstract::c_wrapper::Restful::post(std::string_view method_name, std::string_view json_request) -> std::string {
+    return get_restful_response(c_post, c_members, std::string(method_name).c_str(), std::string(json_request).c_str());
 }
 
-fun cwrapper::Restful::patch(std::string_view json_request) -> std::string {
-    return get_restful_response(cpatch, cmembers, json_request.data());
+fun abstract::c_wrapper::Restful::patch(std::string_view json_request) -> std::string {
+    return get_restful_response(c_patch, c_members, std::string(json_request).c_str());
 }
 
 extern "C" {
+    typedef void* nexus_restful_t;
+
     fun static cast(nexus_restful_t restful) { 
         return static_cast<nexus::abstract::Restful*>(restful); 
     }
@@ -40,17 +41,17 @@ extern "C" {
         char* (*patch)(void* members, const char* json_request),
         void* members
     ) -> nexus_restful_t {
-        var res = new nexus::cwrapper::Restful();
-        res->cpath = path;
-        res->cjson = json;
-        res->cpost = post;
-        res->cpatch = patch;
-        res->cmembers = members;
+        var res = new abstract::c_wrapper::Restful();
+        res->c_path = path;
+        res->c_json = json;
+        res->c_post = post;
+        res->c_patch = patch;
+        res->c_members = members;
         return res;
     }
 
-    fun nexus_restful_override_delete(nexus_restful_t restful) -> void {
-        delete static_cast<nexus::cwrapper::Restful*>(restful);
+    fun nexus_restful_delete(nexus_restful_t restful) -> void {
+        delete cast(restful);
     }
 
     fun nexus_restful_path(nexus_restful_t restful) -> char* { 

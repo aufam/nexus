@@ -3,27 +3,26 @@
 
 using namespace nexus;
 
-fun modbus::api::encode(nexus::byte_view buffer) -> std::vector<uint8_t> {
-    var res = std::vector<uint8_t>();
-    res.reserve(buffer.len() + 2);
-    for (val byte in buffer)
-        res.push_back(byte);
-    
+fun modbus::api::Codec::encode(byte_view buffer) const -> byte_view {
     val crc = modbus::api::crc(buffer);
-    res.push_back((crc >> 0) & 0xFF);
-    res.push_back((crc >> 8) & 0xFF);
+    std::vector<uint8_t> res = buffer;
+    res.resize(res.size() + 2);
+    res[res.size() - 2] = (crc >> 0) & 0xFF;
+    res[res.size() - 1] = (crc >> 8) & 0xFF;
     return res;
 }
 
-fun modbus::api::decode(nexus::byte_view buffer) -> std::vector<uint8_t> {
+fun modbus::api::Codec::decode(byte_view buffer) const -> byte_view {
     if (buffer.len() < 4)
         return {};
 
-    val crc = modbus::api::crc({buffer.data(), buffer.len() - 2});
+    val crc = modbus::api::crc(byte_view{buffer.data(), buffer.len() - 2});
     if (crc != (buffer[-2] | buffer[-1] << 8))
         return {};
     
-    return {buffer.begin(), buffer.end() - 2};
+    std::vector<uint8_t> res = buffer;
+    res.resize(res.size() - 2);
+    return res;
 }
 
 static const uint16_t crcTable[] = {
@@ -61,7 +60,7 @@ static const uint16_t crcTable[] = {
         0X8201, 0X42C0, 0X4380, 0X8341, 0X4100, 0X81C1, 0X8081, 0X4040
 };
 
-fun modbus::api::crc(nexus::byte_view buffer) -> uint16_t {
+fun modbus::api::crc(byte_view buffer) -> uint16_t {
     uint16_t res = 0xFFFF;
     for (val byte in buffer) {
         uint8_t temp = byte ^ res;
@@ -69,4 +68,28 @@ fun modbus::api::crc(nexus::byte_view buffer) -> uint16_t {
         res ^= crcTable[temp];
     }
     return res;
+}
+
+extern "C" {
+    uint8_t* nexus_modbus_encode(const uint8_t* buffer, size_t* length) {
+        auto res = modbus::api::Codec().encode(byte_view{buffer, *length});
+        *length = res.len();
+
+        var ret = (uint8_t*) ::malloc(*length);
+        ::memcpy(ret, res.data(), *length);
+        return ret;
+    }
+
+    uint8_t* nexus_modbus_decode(const uint8_t* buffer, size_t* length) {
+        auto res = modbus::api::Codec().decode(byte_view{buffer, *length});
+        *length = res.len();
+
+        var ret = (uint8_t*) ::malloc(*length);
+        ::memcpy(ret, res.data(), *length);
+        return ret;
+    }
+
+    uint16_t nexus_modbus_crc(const uint8_t* buffer, size_t length) {
+        return modbus::api::crc(byte_view{buffer, length});
+    }
 }

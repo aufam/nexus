@@ -1,14 +1,7 @@
 #include "nexus/http/server.h"
-#include "nexus/http/c_wrapper.h"
 #include "nexus/abstract/listener.h"
 #include "nexus/tools/json.h"
 #include <etl/keywords.h>
-
-namespace Project::nexus {
-    int foo() {
-        return 43;
-    }
-}
 
 using namespace Project::nexus;
 
@@ -109,6 +102,12 @@ fun http::Server::add(abstract::Restful& restful, int index) -> Server& {
 }
 
 extern "C" {
+
+typedef void* nexus_restful_t;
+typedef void* nexus_http_server_t;
+typedef const void* nexus_http_request_t;
+typedef void* nexus_http_response_t;
+typedef void (*nexus_http_server_handler_t)(nexus_http_request_t request, nexus_http_response_t response);
 
 fun static cast_server(nexus_http_server_t server) {
     return static_cast<nexus::http::Server*>(server);
