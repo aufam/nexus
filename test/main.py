@@ -1,8 +1,6 @@
 import os
 import subprocess
 
-print(os.path.dirname(os.path.abspath(__file__)))
-
 def run_test(file_name):
     print(f'--Assertion start: {file_name}--')
     subprocess.run(['python3', os.path.join(os.path.dirname(os.path.abspath(__file__)), file_name)])

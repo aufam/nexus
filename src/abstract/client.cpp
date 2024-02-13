@@ -1,5 +1,6 @@
 #include "nexus/abstract/client.h"
 #include "nexus/tools/json.h"
+#include "nexus/tools/to_string.h"
 #include "helper.ipp"
 #include <etl/scope_exit.h>
 #include <etl/keywords.h>
@@ -14,20 +15,11 @@ fun abstract::Client::post(std::string_view method_name, std::string_view json_r
         if (not buffer.is_list())
             return tools::json_response_status_fail_mismatch_value_type();
         
-        var buf = std::vector<uint8_t>(buffer.len());
-        for (var [src, dest] in etl::zip(buffer, buf))
-            dest = src.to_int();
-        
-        val res = request(buf);
-        var res_string = std::string("[");
-        for (val byte in res) 
-            res_string += std::to_string(byte) + ", ";
-        
-        res_string.pop_back();
-        res_string.back() = ']';
+        val req = tools::json_to_vector<uint8_t>(buffer);
+        val res = tools::to_string(request(req).to_vector());
 
         return tools::json_concat(tools::json_response_status_success("Request"), "{"
-            "\"res\": " + res_string + 
+            "\"res\": " + res + 
         "}");
     }
 

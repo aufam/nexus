@@ -6,20 +6,35 @@
 #ifdef __cplusplus
 namespace Project::nexus::abstract { 
 
-    /// Abstract class representing a communication interface for hardware interaction,
-    /// inheriting RESTful capabilities.
+    /// Abstract class representing a communication interface.
+    ///
+    /// Endpoints:
+    ///  * `/`:
+    ///     * Method: GET
+    ///     * Response: {"isConnected": <bool>} 
+    ///  * `/reconnect`:
+    ///     * Method: POST
+    ///     * Request: {}.
+    ///     * Response: JSON object with `"status": <string>` indicating the outcome of the reconnection attempt.
+    ///  * `/disconnect`:
+    ///     * Method: POST
+    ///     * Request: Empty JSON object (`{}`).
+    ///     * Response: JSON object with `"status": <string>` indicating the outcome of the disconnection attempt.
     class Communication : virtual public Restful {
     protected:
-        /// Protected constructor to prevent direct instantiation.
-        /// Subclasses should provide concrete implementations for hardware communication.
         Communication() = default;
 
     public:
-        /// Virtual destructor for proper cleanup in derived classes.
         virtual ~Communication() {}
 
+        /// RESTful GET
+        /// @return Response as json string. Format: {"isConnected": <bool>}
         std::string json() const override;
 
+        /// RESTful POST
+        /// @param method_name Method name: "reconnect", "disconnect"
+        /// @param json_request Request as json string. Format: {}
+        /// @return Response as json string. Format: {"status": <string>}
         std::string post(std::string_view method_name, std::string_view json_request) override;
 
         virtual void reconnect() {};

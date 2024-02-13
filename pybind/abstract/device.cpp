@@ -29,7 +29,7 @@ namespace pybind11 {
 }
 
 void pybind11::bindDevice(module_& m) {
-    class_<nexus::abstract::Device, Device, nexus::abstract::Restful>(m, "Device", "Abstract Device")
+    class_<nexus::abstract::Device, Device, nexus::abstract::Restful, std::shared_ptr<nexus::abstract::Device>>(m, "Device", "Abstract Device")
     .def(init<>())
     .def("update",
         [] (nexus::abstract::Device& self) { gil_scoped_release gil_release; self.update(); },

@@ -10,22 +10,30 @@
 
 namespace Project::nexus::tools {
 
-    inline std::string to_string(float value, int precision) {
+    inline std::string to_string(float value, int precision=3) {
         std::stringstream ss;
         ss << std::fixed << std::setprecision(precision) << value;
         return ss.str();
+    }
+
+    inline std::string to_string(double value, int precision=3) {
+        return to_string(float(value), precision);
     }
 
     inline std::string to_string(bool value) {
         return value ? "true" : "false";
     }
 
+    inline std::string to_string(int value) {
+        return std::to_string(value);
+    }
+
     inline std::string to_string(std::string_view str) {
         return "\"" + std::string(str) + "\"";
     }
 
-    inline std::string to_string(int value) {
-        return std::to_string(value);
+    inline std::string to_string(etl::StringView str) {
+        return to_string(std::string_view(str.data(), str.len()));
     }
 
     template <typename T>

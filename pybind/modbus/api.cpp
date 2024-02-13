@@ -15,10 +15,12 @@ void pybind11::bindModbusAPI(module_& m) {
     .value("DATA_FRAME", nexus::modbus::Error::DATA_FRAME)
     .export_values();
 
-    class_<nexus::modbus::api::Codec, nexus::abstract::Codec>(m, "ModbusCodec", "Modbus Codec").def(init<>());
     m.def("ModbusCRC", nexus::modbus::api::crc, arg("buffer"));
 
-    class_<nexus::modbus::api::Client, nexus::abstract::Client>(m, "ModbusClient")
+    class_<nexus::modbus::api::Codec, nexus::abstract::Codec, std::shared_ptr<nexus::modbus::api::Codec>>(m, "ModbusCodec")
+    .def(init<>());
+
+    class_<nexus::modbus::api::Client, nexus::abstract::Client, std::shared_ptr<nexus::modbus::api::Client>>(m, "ModbusClient")
     .def("ReadCoils", 
         [] (nexus::modbus::api::Client& self, uint16_t register_address, uint16_t n_register) {
             gil_scoped_release gil_release;
@@ -100,7 +102,7 @@ void pybind11::bindModbusAPI(module_& m) {
     )
     .def("error", &nexus::modbus::api::Client::error);
 
-    class_<nexus::modbus::api::Server, nexus::abstract::Restful>(m, "ModbusServer")
+    class_<nexus::modbus::api::Server, nexus::abstract::Restful, std::shared_ptr<nexus::modbus::api::Server>>(m, "ModbusServer")
     .def("isRunning", &nexus::modbus::api::Server::isRunning)
     .def("CoilGetter",
         [] (nexus::modbus::api::Server& self, uint16_t register_address) {

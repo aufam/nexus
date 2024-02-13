@@ -41,7 +41,7 @@ namespace pybind11 {
 }
 
 void pybind11::bindTCPClient(module_& m) {
-    class_<nexus::tcp::Client, TCPClient, nexus::abstract::Client>(m, "TCPClient", "TCP Client")
+    class_<nexus::tcp::Client, TCPClient, nexus::abstract::Client, std::shared_ptr<nexus::tcp::Client>>(m, "TCPClient", "TCP Client")
     .def(init<std::string, int, std::chrono::milliseconds>(), 
         arg("host"), 
         arg("port"),

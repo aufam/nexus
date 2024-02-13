@@ -35,7 +35,7 @@ namespace pybind11 {
 }
 
 void pybind11::bindCommunication(module_& m) {
-    class_<nexus::abstract::Communication, Communication, nexus::abstract::Restful>(m, "Communication", "Abstract Communication")
+    class_<nexus::abstract::Communication, Communication, nexus::abstract::Restful, std::shared_ptr<nexus::abstract::Communication>>(m, "Communication", "Abstract Communication")
     .def(init<>())
     .def("reconnect", [] (nexus::abstract::Communication& self) { gil_scoped_release gil_release; self.reconnect(); })
     .def("disconnect", &nexus::abstract::Communication::disconnect)

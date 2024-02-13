@@ -9,23 +9,24 @@
 
 namespace Project::nexus::abstract { 
 
-    /// Abstract class representing any device, inheriting RESTful capabilities.
+    /// Abstract class representing synchronous communication with a server.
     class Client : virtual public Communication {
     protected:
-        /// Protected constructor to prevent direct instantiation.
         Client() = default;
 
     public:
-        /// Virtual destructor for proper cleanup in derived classes.
         virtual ~Client() {}
 
+        /// Restful path. Default = "/client"
         std::string path() const override { return "/client"; }
+
+        /// Restful post
         std::string post(std::string_view method_name, std::string_view json_request) override;
 
-        /// Sends buffer over the Client connection.
-        /// @param buffer Buffer to send.
-        /// @return Number of bytes sent, or -1 if failed.
-        virtual nexus::byte_view request(nexus::byte_view buffer) { return buffer; };
+        /// @brief Send buffer request and receive the response
+        /// @param buffer Request buffer
+        /// @return Response buffer
+        virtual byte_view request(byte_view buffer) { return buffer; };
     };
 }
 
@@ -44,7 +45,7 @@ namespace Project::nexus::abstract::c_wrapper {
         void disconnect() override;
         bool isConnected() const override;
 
-        nexus::byte_view request(nexus::byte_view buffer) override;
+        byte_view request(byte_view buffer) override;
 
         abstract::Communication* communication;
         uint8_t* (*c_request)(void*, const uint8_t*, size_t*);

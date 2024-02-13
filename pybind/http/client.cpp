@@ -8,7 +8,7 @@ namespace pybind11 {
 }
 
 void pybind11::bindHttpClient(module_& m) {
-    class_<nexus::http::Client>(m, "HttpClient", "HTTP Client")
+    class_<nexus::http::Client, std::shared_ptr<nexus::http::Client>>(m, "HttpClient", "HTTP Client")
     .def(init<std::string, int>(), 
         arg("host"), 
         arg("port")

@@ -14,22 +14,17 @@ namespace pybind11 {
         virtual ~Listener() {}
 
         std::string path() const override {
-            return _path ? _path() : nexus::abstract::Listener::path();
+            PYBIND11_OVERRIDE(std::string, nexus::abstract::Listener, path, );
         }
         std::string json() const override {
-            return _json ? _json() : nexus::abstract::Listener::json();
-        }
-        std::string post(std::string_view method_name, std::string_view json_request) override {
-            return _post ? _post(method_name, json_request) : nexus::abstract::Listener::post(method_name, json_request);
+            PYBIND11_OVERRIDE(std::string, nexus::abstract::Listener, json, );
         }
         std::string patch(std::string_view json_request) override {
-            return _patch ? _patch(json_request) : nexus::abstract::Listener::patch(json_request);
+            PYBIND11_OVERRIDE(std::string, nexus::abstract::Listener, patch, json_request);
         }
-
-        std::function<std::string()> _path;
-        std::function<std::string()> _json;
-        std::function<std::string(std::string_view, std::string_view)> _post;
-        std::function<std::string(std::string_view)> _patch;
+        std::string post(std::string_view method_name, std::string_view json_request) override {
+            PYBIND11_OVERRIDE(std::string, nexus::abstract::Listener, post, method_name, json_request);
+        }
     };
 }
 
@@ -48,30 +43,28 @@ void pybind11::bindListener(module_& m) {
         return_value_policy::reference_internal
     );
 
-    class_<Listener, nexus::abstract::Restful>(m, "Listener")
+    class_<nexus::abstract::Listener, Listener, nexus::abstract::Restful, std::shared_ptr<nexus::abstract::Listener>>(m, "Listener")
     .def(init<>())
     .def("stop",
-        &Listener::stop,
-        "Stop the thread"
-    )
-    .def("__del__",
-        [] (Listener& self) {
+        [] (nexus::abstract::Listener& self) {
             gil_scoped_release release;
             self.stop();
-        }
+        },
+        "Stop the thread"
     )
     .def("add", 
-        [] (Listener& self, object device) -> Listener& {
-            if (!isinstance<nexus::abstract::Device>(device))
-                throw std::invalid_argument("Invalid object type: expected Device class");
-            self.add(std::unique_ptr<nexus::abstract::Device>(device.release().cast<nexus::abstract::Device*>()));
-            return self;
-        },
+        &nexus::abstract::Listener::add,
+        // [] (nexus::abstract::Listener& self, object device) -> nexus::abstract::Listener& {
+        //     if (!isinstance<nexus::abstract::Device>(device))
+        //         throw std::invalid_argument("Invalid object type: expected Device class");
+        //     self.add(std::shared_ptr<nexus::abstract::Device>(device.release().cast<nexus::abstract::Device*>()));
+        //     return self;
+        // },
         arg("device"),
         "Adds a device to the listener."
     )
     .def("remove",
-        [] (Listener& self, int index) -> Listener& {
+        [] (nexus::abstract::Listener& self, int index) -> nexus::abstract::Listener& {
             try {
                 self.remove(index);
                 return self;
@@ -83,11 +76,11 @@ void pybind11::bindListener(module_& m) {
         "Removes a device from the listener by index."
     )
     .def("__len__", 
-        &Listener::len, 
+        &nexus::abstract::Listener::len, 
         "Returns the number of devices in the listener."
     )
     .def("__getitem__", 
-        [] (Listener& self, int index) -> nexus::abstract::Device& {
+        [] (nexus::abstract::Listener& self, int index) -> nexus::abstract::Device& {
             try {
                 return self[index];
             } catch (const std::out_of_range& e) {
@@ -99,45 +92,13 @@ void pybind11::bindListener(module_& m) {
         "Reference to the device at the specified index."
     )
     .def("__iter__", 
-        [] (Listener& self) -> DeviceIterator { 
+        [] (nexus::abstract::Listener& self) -> DeviceIterator { 
             return etl::iter(self); 
         },
         "Return device iterator."
     )
     .def_readwrite("interval",
-        &Listener::interval,
+        &nexus::abstract::Listener::interval,
         "Time interval between updates."
-    )
-    .def_property_readonly("path_override",
-        [] (Listener& self) {
-            return std::function ([&self] (const std::function<std::string()>& path) {
-                self._path = path;
-            });
-        },
-        "Override path as function decorator"
-    )
-    .def_property_readonly("json_override",
-        [] (Listener& self) {
-            return std::function ([&self] (const std::function<std::string()>& json) {
-                self._json = json;
-            });
-        },
-        "Override json as function decorator"
-    )
-    .def_property_readonly("post_override",
-        [] (Listener& self) {
-            return std::function ([&self] (const std::function<std::string(std::string_view, std::string_view)>& post) {
-                self._post = post;
-            });
-        },
-        "Override post as function decorator"
-    )
-    .def_property_readonly("patch_override",
-        [] (Listener& self) {
-            return std::function ([&self] (const std::function<std::string(std::string_view)>& patch) {
-                self._patch = patch;
-            });
-        },
-        "Override patch as function decorator"
     );
 }

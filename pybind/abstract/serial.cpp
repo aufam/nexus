@@ -45,7 +45,10 @@ namespace pybind11 {
 }
 
 void pybind11::bindSerial(module_& m) {
-    class_<nexus::abstract::Serial, Serial, nexus::abstract::Restful>(m, "Serial", "Abstract Serial")
+    class_<nexus::abstract::Serial, Serial, nexus::abstract::Restful, std::shared_ptr<nexus::abstract::Serial>>(m, 
+        "Serial", 
+        "Abstract Asynchronous Serial class"
+    )
     .def(init<>())
     .def("send", 
         &nexus::abstract::Serial::send,

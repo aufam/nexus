@@ -26,7 +26,7 @@ namespace pybind11 {
 }
 
 void pybind11::bindRestful(module_& m) {
-    class_<nexus::abstract::Restful, Restful>(m, "Restful", "Abstract Restful")
+    class_<nexus::abstract::Restful, Restful, std::shared_ptr<nexus::abstract::Restful>>(m, "Restful", "Abstract Restful")
     .def(init<>())
     .def("path", 
         &nexus::abstract::Restful::path,

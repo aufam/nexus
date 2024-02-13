@@ -12,14 +12,13 @@ abstract::Listener::Listener() {
 }
 
 abstract::Listener::~Listener() {
-    isRunning = false;
-    if (worker.joinable())
-        worker.join();
+    stop();
 }
 
 fun abstract::Listener::stop() -> void {
     isRunning = false;
-    worker.detach();
+    if (worker.joinable())
+        worker.join();
 }
 
 fun abstract::Listener::json() const -> std::string {
@@ -67,7 +66,7 @@ fun abstract::Listener::work() -> void {
     }
 }
 
-fun abstract::Listener::add(std::unique_ptr<Device> device) -> Listener& {
+fun abstract::Listener::add(std::shared_ptr<Device> device) -> Listener& {
     std::scoped_lock<std::mutex> lock(mutex);
     devices.push_back(std::move(device));
     return *this;
@@ -150,7 +149,7 @@ extern "C" {
     }
 
     fun nexus_listener_add(nexus_listener_t listener, nexus_device_t device) -> void {
-        cast(listener)->add(std::unique_ptr<abstract::Device>(static_cast<nexus::abstract::Device*>(device)));
+        cast(listener)->add(std::shared_ptr<abstract::Device>(static_cast<nexus::abstract::Device*>(device)));
     }
 
     fun nexus_listener_remove(nexus_listener_t listener, int index) -> void {

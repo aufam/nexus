@@ -10,7 +10,7 @@ namespace pybind11 {
 }
 
 void pybind11::bindSerialHardware(module_& m) {
-    class_<nexus::serial::Hardware, nexus::abstract::Serial>(m, "SerialHardware", "Serial Hardware Communication")
+    class_<nexus::serial::Hardware, nexus::abstract::Serial, std::shared_ptr<nexus::serial::Hardware>>(m, "SerialHardware", "Serial Hardware Communication")
     .def(init<std::string, speed_t, std::chrono::milliseconds, std::shared_ptr<nexus::abstract::Codec>>(),
         arg("port"), 
         arg("speed"),
@@ -50,9 +50,14 @@ void pybind11::bindSerialHardware(module_& m) {
     .def_readwrite("speed", &nexus::serial::Hardware::speed)
     .def_readwrite("timeout", &nexus::serial::Hardware::timeout);
 
-    class_<nexus::serial::Hardware::Interface>(m, "SerialHardwareInterface", "Serial Hardware Interface")
-    .def(init<std::shared_ptr<nexus::serial::Hardware>>())
-    .def(init<std::shared_ptr<nexus::serial::Hardware>, std::shared_ptr<nexus::abstract::Codec>>())
+    class_<nexus::serial::Hardware::Interface, std::shared_ptr<nexus::serial::Hardware::Interface>>(m, "SerialHardwareInterface", "Serial Hardware Interface")
+    .def(init<std::shared_ptr<nexus::serial::Hardware>>(),
+        arg("hardware_serial")
+    )
+    .def(init<std::shared_ptr<nexus::serial::Hardware>, std::shared_ptr<nexus::abstract::Codec>>(),
+        arg("hardware_serial"),
+        arg("codec")
+    )
     .def("getSerialHardware", &nexus::serial::Hardware::Interface::getSerialHardware)
     .def("getCodec", &nexus::serial::Hardware::Interface::getCodec);
 }

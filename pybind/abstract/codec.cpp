@@ -33,7 +33,7 @@ namespace pybind11 {
 }
 
 void pybind11::bindCodec(module_& m) {
-    class_<nexus::abstract::Codec, Codec, nexus::abstract::Restful>(m, "Codec", "Abstract Codec")
+    class_<nexus::abstract::Codec, Codec, nexus::abstract::Restful, std::shared_ptr<nexus::abstract::Codec>>(m, "Codec", "Abstract Codec")
     .def(init<>())
     .def("encode", &nexus::abstract::Codec::encode, arg("buffer"))
     .def("decode", &nexus::abstract::Codec::decode, arg("buffer"));

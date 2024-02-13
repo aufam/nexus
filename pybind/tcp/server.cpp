@@ -11,7 +11,7 @@ void pybind11::bindTCPServer(module_& m) {
     using HandlerFunction = std::function<std::vector<uint8_t>(nexus::byte_view)>;
     using LoggerFunction = std::function<void(const char*, nexus::byte_view, nexus::byte_view)>;
 
-    class_<nexus::tcp::Server>(m, "TCPServer", "Nexus TCP Server")
+    class_<nexus::tcp::Server, std::shared_ptr<nexus::tcp::Server>>(m, "TCPServer", "Nexus TCP Server")
     .def(init<>())
     .def_property_readonly("callback", 
         [] (nexus::tcp::Server& self) {

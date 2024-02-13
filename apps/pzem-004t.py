@@ -108,7 +108,7 @@ class PZEM(py_nexus.Device):
         return json.dumps({**response_succes, **response}) if response else json.dumps(response_fail)
     
 
-def main(host, port, page, serial_port, device_address):
+def main(serial_port, device_address, host, port, page, path_file):
     pzem = PZEM(device_address, serial_port)
     listener = py_nexus.Listener()
     listener.add(pzem)
@@ -130,6 +130,22 @@ def main(host, port, page, serial_port, device_address):
 
         return response
     
+    for pair in path_file:
+        path, file = pair.split(':')
+
+        @server.Get(path)
+        def _(request, response):
+            try:
+                with open(file, 'r') as f:
+                    file_content = f.read()
+                response.set_content(file_content, py_nexus.getContentType(file))
+                response.status = 200
+            except Exception as e:
+                response.set_content(str(e), 'text/plain')
+                response.status = 500
+
+            return response
+        
     @server.logger
     def _(request, response):
         print(f'{request.remote_addr} {request.method} {request.path} {request.version} {response.status}')
@@ -155,11 +171,12 @@ if __name__ == '__main__':
     script_directory = os.path.dirname(os.path.abspath(__file__))
     parser = argparse.ArgumentParser(description='PZEM-004T Interface')
 
+    parser.add_argument('-s', '--serial-port', type=str, default='auto', help='Specify the serial port')
+    parser.add_argument('-d', '--device-address', type=int, default=0xF8, help='Specify the device address')
     parser.add_argument('-H', '--host', type=str, default='localhost', help='Specify the server host')
     parser.add_argument('-p', '--port', type=int, default=5000, help='Specify the server port')
     parser.add_argument('-P', '--page', type=str, default=script_directory + '/pzem-004t.html', help='Specify the HTML page')
-    parser.add_argument('-s', '--serial-port', type=str, default='auto', help='Specify the serial port')
-    parser.add_argument('-d', '--device-address', type=int, default=0xF8, help='Specify the device address')
+    parser.add_argument('-f', '--path-file', type=str, default=[], action='append', help='Specify the additional path-file pair. eg: /src.js:static/src.js')
 
     args = parser.parse_args()
     main(**vars(args))

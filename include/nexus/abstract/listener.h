@@ -43,7 +43,7 @@ namespace Project::nexus::abstract {
         /// Adds a device to the listener.
         /// @param [in] device Unique pointer to the device to add.
         /// @return Reference to the listener for method chaining.
-        virtual Listener& add(std::unique_ptr<Device> device);
+        virtual Listener& add(std::shared_ptr<Device> device);
 
         /// Removes a device from the listener by index.
         /// @param [in] index Index of the device to remove.
@@ -82,7 +82,7 @@ namespace Project::nexus::abstract {
         std::chrono::milliseconds interval = std::chrono::milliseconds(100);  ///< Time interval between updates.
 
     protected:
-        std::vector<std::unique_ptr<Device>> devices;  ///< Collection of managed devices.
+        std::vector<std::shared_ptr<Device>> devices;  ///< Collection of managed devices.
         std::mutex mutex;           ///< Mutex for thread synchronization.
         std::condition_variable cv;  ///< Condition variable for thread coordination.
 
@@ -100,7 +100,7 @@ namespace Project::nexus::abstract {
     template <typename T>
     class Listener::iterator {
     public:
-        iterator(const std::vector<std::unique_ptr<Device>>& devices, int index) : devices(&devices), index(index) {}
+        iterator(const std::vector<std::shared_ptr<Device>>& devices, int index) : devices(&devices), index(index) {}
 
         bool operator!=(const iterator& other) const { return index != other.index; }
         bool operator==(const iterator& other) const { return index == other.index; }
@@ -131,7 +131,7 @@ namespace Project::nexus::abstract {
         operator iterator<U>() const { return iterator<U>(*devices, index); }
     
     private:
-        const std::vector<std::unique_ptr<Device>>* devices;
+        const std::vector<std::shared_ptr<Device>>* devices;
         int index;
     };
 }

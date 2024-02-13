@@ -23,15 +23,17 @@ def main():
         print('[TEST] Slice')
         a = ByteView("Test 123")
         assert a[-3:].to_string() == "123"
+        assert a[::-1].to_string() == "321 tseT"
+        assert a[2:].to_string() == "st 123"
+        assert a[2:4].to_string() == "st"
+        assert a[::3].to_string() == "Tt2"
+        assert a[1::2].to_string() == "et13"
         print('[OK]')
 
         print('[TEST] Comparison')
         a, b = ByteView("123"), ByteView([ord('1'), ord('2'), ord('3')])
         assert a == b
         print('[OK]')
-
-    except AssertionError as e:
-        print(f"AssertionError: {e}")
 
     except AssertionError as e:
         print(f'--AssertionError: {e}--')

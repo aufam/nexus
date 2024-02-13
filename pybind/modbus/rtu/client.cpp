@@ -9,7 +9,11 @@ namespace pybind11 {
 }
 
 void pybind11::bindModbusRTUClient(module_& m) {
-    class_<nexus::modbus::rtu::Client, nexus::modbus::api::Client, nexus::serial::Hardware::Interface>(m, "ModbusRTUClient", "Modbus RTU Client")
+    class_<nexus::modbus::rtu::Client, 
+        nexus::modbus::api::Client, 
+        nexus::serial::Hardware::Interface, 
+        std::shared_ptr<nexus::modbus::rtu::Client>
+    >(m, "ModbusRTUClient")
     .def(init<int, std::string, speed_t, std::chrono::milliseconds>(), 
         arg("server_address"), 
         arg("port"), 

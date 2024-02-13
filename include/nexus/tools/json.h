@@ -77,6 +77,13 @@ namespace Project::nexus::tools {
 
     template <typename T>
     std::vector<T> json_to_vector(const etl::Json& json) {
+        static_assert(
+            std::is_integral_v<T> || 
+            std::is_floating_point_v<T> || 
+            std::is_same_v<T, bool> || 
+            std::is_same_v<T, std::string>, 
+        "Unsupported type");
+
         auto res = std::vector<T>(json.len());
         for (auto [src, dest]: etl::zip(json, res)) {
             if constexpr (std::is_integral_v<T>) {
@@ -87,8 +94,6 @@ namespace Project::nexus::tools {
                 dest = src.is_true();
             } else if constexpr (std::is_same_v<T, std::string>) {
                 dest = std::string(src.to_string().begin(), src.to_string().end());
-            } else {
-                // static_assert(false, "Unsupported type");
             }
         }
         

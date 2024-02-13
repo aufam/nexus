@@ -69,19 +69,18 @@ namespace pybind11 {
 }
 
 void pybind11::bindSerialSoftware(module_& m) {
-    class_<nexus::serial::Software, SerialSoftware, nexus::abstract::Serial, nexus::serial::Hardware::Interface>(m, "SerialSoftware", "Software Serial Communication")
+    class_<nexus::serial::Software, SerialSoftware, nexus::abstract::Serial, nexus::serial::Hardware::Interface, std::shared_ptr<nexus::serial::Software>>(m, 
+        "SerialSoftware"
+    )
     .def(init<>())
     .def(init<std::string, speed_t, std::chrono::milliseconds, std::shared_ptr<nexus::abstract::Codec>>(),
         arg("port"), 
         arg("speed"),
         arg("timeout") = SerialSoftware::Default::timeout,
-        arg("codec")
+        arg("codec") = nullptr
     )
-    .def(init<std::string, speed_t, std::chrono::milliseconds, std::shared_ptr<nexus::abstract::Codec>>(),
-        arg("port"), 
-        arg("speed"),
-        arg("timeout"),
-        arg("codec")
+    .def(init<std::shared_ptr<nexus::serial::Hardware>>(),
+        arg("hardware_serial")
     )
     .def(init<std::shared_ptr<nexus::serial::Hardware>, std::shared_ptr<nexus::abstract::Codec>>(),
         arg("hardware_serial"),

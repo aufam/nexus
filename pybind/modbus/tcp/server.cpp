@@ -8,6 +8,8 @@ namespace pybind11 {
 }
 
 void pybind11::bindModbusTCPServer(module_& m) {
-    class_<nexus::modbus::tcp::Server, nexus::modbus::api::Server, nexus::tcp::Server>(m, "ModbusTCPServer", "Nexus TCP Server")
+    class_<nexus::modbus::tcp::Server, nexus::modbus::api::Server, nexus::tcp::Server, std::shared_ptr<nexus::modbus::tcp::Server>>(m, 
+        "ModbusTCPServer"
+    )
     .def(init<>());
 }

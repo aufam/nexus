@@ -9,21 +9,19 @@ namespace Project::nexus::abstract {
     /// Abstract class defining a RESTful scheme.
     class Restful {
     protected:
-        /// Protected constructor to prevent direct instantiation.
         Restful() = default;
 
     public:
-        /// Virtual destructor for proper cleanup in derived classes.
         virtual ~Restful() {}
 
-        /// Retrieves the object name.
-        /// @return The object name as a string.
+        /// Retrieves the object path.
         virtual std::string path() const { return {}; }
 
+        /// Restful GET method.
         /// Converts the object's data to a JSON string representation.
-        /// @return The JSON string representing the object's data.
         virtual std::string json() const { return {}; }
 
+        /// Restful POST method.
         /// Posts a request to invoke a method on the object.
         /// @param method_name The name of the method to invoke.
         /// @param json_request The JSON-formatted request data.
@@ -33,6 +31,7 @@ namespace Project::nexus::abstract {
             return {}; 
         }
 
+        /// Restful PATCH method.
         /// Patches (updates) certain parameters on the object.
         /// @param json_request The JSON-formatted request data containing the parameters to update.
         /// @return The JSON-formatted response from the object.

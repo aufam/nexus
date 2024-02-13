@@ -11,7 +11,7 @@ void pybind11::bindHttpServer(module_& m) {
     using HandlerFunction = std::function<httplib::Response(httplib::Request, httplib::Response)>;
     using LoggerFunction = std::function<void(httplib::Request, httplib::Response)>;
 
-    class_<nexus::http::Server>(m, "HttpServer", "Nexus HTTP Server")
+    class_<nexus::http::Server, std::shared_ptr<nexus::http::Server>>(m, "HttpServer", "Nexus HTTP Server")
     .def(init<>())
     .def("add", 
         [] (nexus::http::Server& self, nexus::abstract::Restful& restful, object index) -> nexus::http::Server& {

@@ -52,7 +52,28 @@ namespace Project::nexus {
         bool operator!=(byte_view other) const { return !operator==(other); }
 
         std::string_view to_string() const { return {reinterpret_cast<const char*>(buf), length}; }
-        std::vector<uint8_t> to_vector() const { return vec.empty() ? std::vector<uint8_t>{buf, buf + length} : std::move(vec); }
+        std::vector<uint8_t> to_vector() const { return vec.empty() ? std::vector(buf, buf + length) : std::move(vec); }
+
+        byte_view slice(int start, int stop, int step = 1) const {
+            if (step == 1)
+                return start <= stop ? byte_view{buf + start, size_t(stop - start)} : byte_view{};
+            
+            std::vector<uint8_t> res;
+            if (step > 0) {
+                for (; start >= 0 && start <= stop; start += step)
+                    res.push_back(buf[start]);
+            }
+            else if (step < 0) {
+                for (; start >= 0 && start >= stop; start += step)
+                    res.push_back(buf[start]);
+            }
+
+            return res;
+        }
+
+        byte_view slice(int start) const {
+            return slice(start, len(), 1);
+        }
 
         operator std::vector<uint8_t>() const { return to_vector(); }
         operator std::string_view() const { return to_string(); }

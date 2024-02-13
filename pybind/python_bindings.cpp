@@ -4,6 +4,7 @@
 namespace pybind11 {
     void bindBaudRate(module_& m);
     void bindByteView(module_& m); 
+    void bindContentType(module_& m); 
 
     // abstract
     void bindRestful(module_& m); 
@@ -44,6 +45,7 @@ PYBIND11_MODULE(py_nexus, m) {
 
     py::bindByteView(m); 
     py::bindBaudRate(m);
+    py::bindContentType(m);
 
     py::bindRestful(m); 
     py::bindDevice(m); 

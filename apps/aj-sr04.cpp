@@ -17,11 +17,9 @@ class AJSR04Codec : public nexus::abstract::Codec {
 public:
     nexus::byte_view encode(nexus::byte_view buffer) const override { return buffer; }
     nexus::byte_view decode(nexus::byte_view buffer) const override {
-        return buffer.len() >= 10 
-            && buffer[0] == 'G' && buffer[1] == 'a' && buffer[2] == 'p' && buffer[3] == '=' 
-            && buffer[-3] == 0x0d && buffer[-2] == 0x0a && buffer[-1] == 0x0d 
-            ? std::vector<uint8_t>(buffer.begin() + 4, buffer.end())
-            : std::vector<uint8_t>();
+        return buffer.slice(0, 4).to_string() == "Gap=" 
+            && buffer.slice(buffer.len() - 3) == nexus::byte_view({0x0d, 0x0a, 0x0d}) 
+            ? buffer.slice(4) : nexus::byte_view{};
     }
 };
 
@@ -59,6 +57,7 @@ int main(int argc, char* argv[]) {
     var host = std::string("localhost");
     var port = 5000;
     var page = std::string(nexus::tools::parent_path(__FILE__) / "aj-sr04.html");
+    var path_source_pairs = std::map<std::string, std::string>();
 
     nexus::tools::execute_options(argc, argv, {
         {'s', "serial-port", required_argument, [&] (const char* arg) { 
@@ -73,6 +72,19 @@ int main(int argc, char* argv[]) {
         {'P', "page", required_argument, [&] (const char* arg) { 
             page = arg; 
         }},
+        {'f', "path-file", required_argument, [&] (const char* arg) { 
+            // Parse pairs of paths and source files
+            std::string pair(arg);
+            size_t pos = pair.find(":");
+            if (pos != std::string::npos) {
+                std::string path = pair.substr(0, pos);
+                std::string source = pair.substr(pos + 1);
+                path_source_pairs[path] = source;
+            } else {
+                std::cerr << "Invalid format for -f option. Use -f path,file" << std::endl;
+                exit(1);
+            }
+        }},
         {'h', "help", no_argument, [] (const char*) {
             std::cout << "AJ-SR04M Interface\n";
             std::cout << "Options:\n";
@@ -80,17 +92,20 @@ int main(int argc, char* argv[]) {
             std::cout << "-H, --host        Specify the server host. Default = localhost\n";
             std::cout << "-p, --port        Specify the server port. Default = 5000\n";
             std::cout << "-P, --page        Specify the HTML page to serve in the main path. Default = aj-sr04.html\n";
+            std::cout << "-f, --path-file   Specify the additional path-file pair. eg: /src.js:static/src.js\n";
             std::cout << "-h, --help        Print help\n";
             exit(0);
         }},
     });
     
+    var ajsr04 = std::make_shared<AJSR04>(serial_port);
     var listener = nexus::abstract::Listener();
     listener.interval = 1s;
-    listener.add(std::make_unique<AJSR04>(serial_port));
+    listener.add(ajsr04);
 
     var server = nexus::http::Server();
-    server.add(listener[0]);
+    server.add(*ajsr04);
+    
     server.set_logger([] (const httplib::Request& request, const httplib::Response& response) { 
         std::cout << 
             nexus::tools::current_time.get() << " " << 
@@ -100,6 +115,7 @@ int main(int argc, char* argv[]) {
             request.version << " " << 
             response.status << std::endl;
     }); 
+
     server.Get("/", [&page] (const httplib::Request&, httplib::Response& response) {
         try {
             response.set_content(nexus::tools::read_file(page), "text/html");
@@ -109,6 +125,18 @@ int main(int argc, char* argv[]) {
             response.status = 500;
         }
     });
+
+    for (val &[path, source] in path_source_pairs) {
+        server.Get(path, [&source] (const httplib::Request&, httplib::Response& response) {
+            try {
+                response.set_content(nexus::tools::read_file(source), nexus::tools::content_type(source));
+                response.status = 200;
+            } catch (const std::exception& e) {
+                response.set_content(e.what(), "text/plain");
+                response.status = 500;
+            }
+        });
+    }
 
     nexus::tools::on_kill([&server] { server.stop(); });
 

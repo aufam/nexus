@@ -11,13 +11,17 @@ namespace Project::nexus::abstract {
     /// Abstract class representing any codec, inheriting RESTful capabilities.
     class Codec : virtual public Restful {
     protected:
-        /// Protected constructor to prevent direct instantiation.
         Codec() = default;
 
     public:
-        /// Virtual destructor for proper cleanup in derived classes.
         virtual ~Codec() {}
 
+        // Restful post
+
+        /// Restful post
+        /// @param method_name Method name: "reconnect", "disconnect"
+        /// @param json_request Request as json string. Format: {"buffer": <list[int]>}
+        /// @return Response as json string. Format: {"res": <list[int]>}
         std::string post(std::string_view method_name, std::string_view json_request) override;
 
         /// Encode raw buffer.
