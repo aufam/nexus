@@ -13,7 +13,7 @@ namespace Project::nexus::tools {
 
     inline std::string to_string(float value, int precision=3) {
         if (std::isnan(value))
-            return "NaN";
+            return "\"NaN\"";
         std::stringstream ss;
         ss << std::fixed << std::setprecision(precision) << value;
         return ss.str();
