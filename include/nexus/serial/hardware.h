@@ -35,6 +35,7 @@ namespace Project::nexus::serial {
         bool isConnected() const override;
 
         int send(byte_view buffer) override;
+        byte_view receive() override;
         byte_view receive(std::function<bool(byte_view)> filter) override;
         
         int sendCodec(std::shared_ptr<abstract::Codec> codec, byte_view buffer);

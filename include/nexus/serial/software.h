@@ -10,7 +10,8 @@ namespace Project::nexus::serial {
     /// Concrete implementation of a communication interface for hardware serial communication.
     class Software : virtual public abstract::Serial, public Hardware::Interface {
     public:
-        using Hardware::Interface::Interface;
+        explicit Software(std::shared_ptr<Hardware> ser);
+        Software(std::shared_ptr<Hardware> ser, std::shared_ptr<abstract::Codec> codec);
 
         struct Default {
             static constexpr const char* port = "auto"; 

@@ -149,6 +149,10 @@ fun serial::Hardware::send(byte_view buffer) -> int {
     return sendCodec(messageHandlers.begin()->get()->codec, buffer);
 }
 
+fun serial::Hardware::receive() -> byte_view {
+    return receiveCodec(messageHandlers.begin()->get()->codec, lambda (var) { return true; });
+}
+
 fun serial::Hardware::receive(std::function<bool(byte_view)> filter) -> byte_view {
     return receiveCodec(messageHandlers.begin()->get()->codec, std::move(filter));
 }

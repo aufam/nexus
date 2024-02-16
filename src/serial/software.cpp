@@ -9,6 +9,9 @@
 using namespace nexus;
 using namespace std::literals;
 
+serial::Software::Software(std::shared_ptr<Hardware> ser) : Hardware::Interface(ser) {}
+serial::Software::Software(std::shared_ptr<Hardware> ser, std::shared_ptr<abstract::Codec> codec) : Hardware::Interface(ser, codec) {}
+
 serial::Software::Software(Args args) 
     : Hardware::Interface(std::make_shared<Hardware>(args.port, args.speed, args.timeout, args.codec)) 
 {}

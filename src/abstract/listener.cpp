@@ -23,11 +23,18 @@ fun abstract::Listener::stop() -> void {
 
 fun abstract::Listener::json() const -> std::string {
     std::string json_devices = "[";
-    for (val &device in devices) {
-        json_devices += device->json() + ", ";
+
+    if (len() > 0) {
+        for (size_t i = 0; i < len(); ++i) {
+            json_devices += devices[i]->json() + ", ";
+        }
+        json_devices.pop_back();
+        json_devices.back() = ']';
     }
-    json_devices.pop_back();
-    json_devices.back() = ']';
+    else {
+        json_devices = "[]";
+    }
+    
     return "{"
         "\"length\": " + std::to_string(len()) + ", "
         "\"devices\": " + json_devices +
