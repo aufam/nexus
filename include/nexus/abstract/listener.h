@@ -127,6 +127,11 @@ namespace Project::nexus::abstract {
             return dynamic_cast<T&>(*devices->operator[](index)); 
         }
 
+        T* operator->() const {
+            if (index < 0 || index >= (int) devices->size()) throw std::out_of_range("Index is out of range"); 
+            return dynamic_cast<T*>(devices->operator[](index).get());
+        }
+
         template <typename U>
         operator iterator<U>() const { return iterator<U>(*devices, index); }
     

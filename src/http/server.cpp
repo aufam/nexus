@@ -38,61 +38,100 @@ fun http::Server::add(abstract::Restful& restful, int index) -> Server& {
     if (listener == nullptr)
         return *this;
 
-    this->Get(pattern + R"(/(.*)/(\d+))", [this, listener] (const httplib::Request& request, httplib::Response& response) {
+    this->Get(pattern + R"(/(.*)(/\d+)?)", [this, listener] (const httplib::Request& request, httplib::Response& response) {
         try {
             val devicePath = "/" + std::string(request.matches[1]);
-            val deviceIndex = std::stoi(std::string(request.matches[2]));
-            val &device = listener->operator[](deviceIndex);
 
-            if (devicePath == device.path()) 
-                set_response_from_get(response, device.json());
-            
-        } catch (const std::exception& e) {
-            set_response(response, tools::json_response_status_fail(e.what()));
-        }
-    });
+            if (request.matches[2].matched) {
+                val device = &listener->operator[](std::stoi(std::string(request.matches[2])));
 
-    this->Patch(pattern + R"(/(.*)/(\d+))", [this, listener] (const httplib::Request& request, httplib::Response& response) {
-        try {
-            val devicePath = "/" + std::string(request.matches[1]);
-            val deviceIndex = std::stoi(std::string(request.matches[2]));
-            var &device = listener->operator[](deviceIndex);
+                if (devicePath == device->path()) 
+                    set_response_from_get(response, device->json());
+            } else {
+                const abstract::Device* device = null;
+                for (val &item in *listener) if (item.path() == devicePath) 
+                    device = &item;
 
-            if (devicePath == device.path()) 
-                set_response(response, device.patch(request.body));
-            
-        } catch (const std::exception& e) {
-            set_response(response, tools::json_response_status_fail(e.what()));
-        }
-    });
-
-    this->Post(pattern + R"(/(.*)/(\d+)/(.*))", [this, listener] (const httplib::Request& request, httplib::Response& response) {
-        try {
-            val devicePath = "/" + std::string(request.matches[1]);
-            val deviceIndex = std::stoi(std::string(request.matches[2]));
-            val deviceMethod = std::string(request.matches[3]);
-            var &device = listener->operator[](deviceIndex);
-
-            if (devicePath == device.path()) 
-                set_response(response, device.post(deviceMethod, request.body));
-            
-        } catch (const std::exception& e) {
-            set_response(response, tools::json_response_status_fail(e.what()));
-        }
-    });
-
-    this->Delete(pattern + R"(/(.*)/(\d+))", [this, listener] (const httplib::Request& request, httplib::Response& response) {
-        try {
-            val devicePath = "/" + std::string(request.matches[1]);
-            val deviceIndex = std::stoi(std::string(request.matches[2]));
-            var &device = listener->operator[](deviceIndex);
-
-            if (devicePath == device.path()) {
-                listener->remove(deviceIndex);
-                response.status = 204;
-                response.reason = "No Content";
+                if (device != null) 
+                    set_response_from_get(response, device->json());
             }
-            
+        } catch (const std::exception& e) {
+            set_response(response, tools::json_response_status_fail(e.what()));
+        }
+    });
+
+    this->Patch(pattern + R"(/(.*)(/\d+)?)", [this, listener] (const httplib::Request& request, httplib::Response& response) {
+        try {
+            val devicePath = "/" + std::string(request.matches[1]);
+
+            if (request.matches[2].matched) {
+                var device = &listener->operator[](std::stoi(std::string(request.matches[2])));
+
+                if (devicePath == device->path()) 
+                    set_response(response, device->patch(request.body));
+            } else {
+                abstract::Device* device = null;
+                for (var &item in *listener) if (item.path() == devicePath) 
+                    device = &item;
+
+                if (device != null) 
+                    set_response(response, device->patch(request.body));
+            }
+        } catch (const std::exception& e) {
+            set_response(response, tools::json_response_status_fail(e.what()));
+        }
+    });
+
+    this->Post(pattern + R"(/(.*)(/\d+)?/(.*))", [this, listener] (const httplib::Request& request, httplib::Response& response) {
+        try {
+            val devicePath = "/" + std::string(request.matches[1]);
+            val deviceMethod = std::string(request.matches[3]);
+
+            if (request.matches[2].matched) {
+                var device = &listener->operator[](std::stoi(std::string(request.matches[2])));
+
+                if (devicePath == device->path()) 
+                    set_response(response, device->post(deviceMethod, request.body));
+            } else {
+                abstract::Device* device = null;
+                for (var &item in *listener) if (item.path() == devicePath) 
+                    device = &item;
+
+                if (device != null) 
+                    set_response(response, device->post(deviceMethod, request.body));
+            }
+        } catch (const std::exception& e) {
+            set_response(response, tools::json_response_status_fail(e.what()));
+        }
+    });
+
+    this->Delete(pattern + R"(/(.*)(/\d+)?)", [this, listener] (const httplib::Request& request, httplib::Response& response) {
+        try {
+            auto devicePath = "/" + std::string(request.matches[1]);
+
+            if (request.matches[2].matched) {
+                auto deviceIndex = std::stoi(std::string(request.matches[2]));
+                auto &device = listener->operator[](deviceIndex);
+
+                if (devicePath == device.path()) {
+                    listener->remove(deviceIndex);
+                    response.status = 204;
+                    response.reason = "No Content";
+                }
+            } else {
+                size_t deviceIndex = 0;
+                for (var &item in *listener) {
+                    if (item.path() == devicePath)
+                        break;
+                    ++deviceIndex;
+                }
+
+                if (deviceIndex < listener->len())  {
+                    listener->remove(deviceIndex);
+                    response.status = 204;
+                    response.reason = "No Content";
+                }
+            }
         } catch (const std::exception& e) {
             set_response(response, tools::json_response_status_fail(e.what()));
         }
