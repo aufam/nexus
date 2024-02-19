@@ -66,8 +66,6 @@ namespace Project::nexus::abstract::c_wrapper {
 }
 
 #else
-#include <stdint.h>
-#include <stddef.h>
 
 /// Opaque handle representing a Nexus serial object.
 typedef void* nexus_serial_t;

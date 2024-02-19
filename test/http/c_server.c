@@ -61,8 +61,8 @@ int c_http_server() {
     nexus_device_t b = nexus_device_override_new(nexus_restful_override_new(pathB, json, NULL, NULL, &member_b), updateB, &member_b);
 
     nexus_http_server_t server = nexus_http_server_new();
-    nexus_http_server_add_restful(server, a);
-    nexus_http_server_add_restful(server, b);
+    nexus_http_server_add_restful(server, a, "", NULL, NULL, 0);
+    nexus_http_server_add_restful(server, b, "", NULL, NULL, 0);
     nexus_http_server_add_method(server, "GET", "/test", get_test_handler);
 
     pthread_t thd;

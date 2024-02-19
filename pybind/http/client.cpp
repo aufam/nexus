@@ -41,8 +41,8 @@ void pybind11::bindHttpClient(module_& m) {
             return res ? std::move(*res.operator->()) : httplib::Response{};
         },
         arg("path"),
-        arg("body"),
-        arg("content_type"),
+        arg("body") = "",
+        arg("content_type") = "",
         "Sends an HTTP POST request and returns the response."
     )
     .def("Put",
@@ -52,8 +52,8 @@ void pybind11::bindHttpClient(module_& m) {
             return res ? std::move(*res.operator->()) : httplib::Response{};
         },
         arg("path"),
-        arg("body"),
-        arg("content_type"),
+        arg("body") = "",
+        arg("content_type") = "",
         "Sends an HTTP PUT request and returns the response."
     )
     .def("Patch",
@@ -63,8 +63,8 @@ void pybind11::bindHttpClient(module_& m) {
             return res ? std::move(*res.operator->()) : httplib::Response{};
         },
         arg("path"),
-        arg("body"),
-        arg("content_type"),
+        arg("body") = "",
+        arg("content_type") = "",
         "Sends an HTTP PATCH request and returns the response."
     )
     .def("Delete",
@@ -74,8 +74,8 @@ void pybind11::bindHttpClient(module_& m) {
             return res ? std::move(*res.operator->()) : httplib::Response{};
         },
         arg("path"),
-        arg("body"),
-        arg("content_type"),
+        arg("body") = "",
+        arg("content_type") = "",
         "Sends an HTTP DELETE request and returns the response."
     )
     .def("Options",

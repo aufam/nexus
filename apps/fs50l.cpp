@@ -187,12 +187,14 @@ int main(int argc, char* argv[]) {
         }},
     });
     
+    var fs50l = std::make_shared<FS50L>(device_address, serial_port);
+
     var listener = nexus::abstract::Listener();
     listener.interval = 1s;
-    listener.add(std::make_shared<FS50L>(device_address, serial_port));
+    listener.add(fs50l);
 
     var server = nexus::http::Server();
-    server.add(listener[0]);
+    server.add(fs50l);
 
     server.set_logger([] (const httplib::Request& request, const httplib::Response& response) { 
         std::cout << 

@@ -38,8 +38,8 @@ namespace Project::nexus::tcp {
 }
 
 #else
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 
 typedef void* nexus_tcp_server_t;
 

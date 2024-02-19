@@ -21,14 +21,40 @@ namespace Project::nexus::http {
         /// Cleans up any resources associated with the server.
         virtual ~Server() {}
 
+        struct RestfulHandler {
+            std::shared_ptr<abstract::Restful> restful; 
+            std::string base_path = "";
+            std::unordered_map<std::string, std::string> query = {}; 
+        };
+    
+        Server& add(RestfulHandler args);
+
         /// Adds a RESTful endpoint to the server.
         /// @param restful The RESTful endpoint to be added.
-        /// @param index An optional additional path segment for handling multiple
-        ///              endpoints with the same base path. If non-negative, the path
-        ///              is registered as "/base_path/{index}". If not specified,
-        ///              only the base path is registered.
+        /// @param base_path Default = "".
+        /// @param query map<string, string> for path query, default = {}.
         /// @return A reference to this Server object, allowing for method chaining.
-        Server& add(abstract::Restful& restful, int index = -1);
+        Server& add(
+            std::shared_ptr<abstract::Restful> restful, 
+            std::string base_path = "", 
+            std::unordered_map<std::string, std::string> query = {}
+        ) {
+            return add(RestfulHandler{.restful=std::move(restful), .base_path=std::move(base_path), .query=std::move(query)});
+        }
+
+        Server& add(
+            abstract::Restful& restful, 
+            std::string base_path = "", 
+            std::unordered_map<std::string, std::string> query = {}
+        ) {
+            return add(std::shared_ptr<abstract::Restful>(&restful, [](abstract::Restful*) {}), std::move(base_path), std::move(query));
+        }
+    
+    protected:
+        std::list<RestfulHandler> handlers;
+
+    private:
+        std::list<std::shared_ptr<abstract::Restful>> find_restful(const httplib::Request& request, bool all = false) const;
     };
 }
 
@@ -58,12 +84,18 @@ void nexus_http_server_add_method(nexus_http_server_t server, const char* method
 /// Adds a Nexus restful to the server's context.
 /// @param server Handle to the server.
 /// @param restful Handle to the restful object.
-void nexus_http_server_add_restful(nexus_http_server_t server, nexus_restful_t restful);
-
-/// Adds a Nexus device with a custom index to the server's context.
-/// @param server Handle to the server.
-/// @param restful Handle to the restful object.
-void nexus_http_server_add_restful_with_index(nexus_http_server_t server, nexus_restful_t restful, int index);
+/// @param base_path base path.
+/// @param query_keys array of query keys.
+/// @param query_values array of query values.
+/// @param query_len query len.
+void nexus_http_server_add_restful(
+    nexus_http_server_t server, 
+    nexus_restful_t restful, 
+    const char* base_path, 
+    const char** query_keys, 
+    const char** query_values, 
+    size_t query_len
+);
 
 /// Starts listening for incoming connections on a specific port.
 /// @param server Handle to the server.

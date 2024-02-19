@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
     listener.add(ajsr04);
 
     var server = nexus::http::Server();
-    server.add(*ajsr04);
+    server.add(ajsr04);
     
     server.set_logger([] (const httplib::Request& request, const httplib::Response& response) { 
         std::cout << 

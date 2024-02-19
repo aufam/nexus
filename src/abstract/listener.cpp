@@ -111,6 +111,11 @@ fun abstract::Listener::end() -> iterator<Device> {
     return { devices, (int) len() };
 }
 
+template <>
+std::shared_ptr<abstract::Restful> nexus::make_restful<abstract::Listener>(std::string_view) {
+    return std::make_shared<abstract::Listener>();
+}
+
 abstract::c_wrapper::Listener::~Listener() { 
     delete restful; 
 }

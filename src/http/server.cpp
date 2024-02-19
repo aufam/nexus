@@ -5,8 +5,6 @@
 
 using namespace Project::nexus;
 
-http::Server::Server() {}
-
 fun static set_response_from_get(httplib::Response& response, const std::string& json_string) {
     response.status = 200; 
     response.set_content(json_string, "application/json");
@@ -17,128 +15,133 @@ fun static set_response(httplib::Response& response, const std::string& json_str
     response.set_content(json_string, "application/json");
 }
 
-fun http::Server::add(abstract::Restful& restful, int index) -> Server& {
-    std::string pattern = restful.path();
-    if (index >= 0) pattern += "/" + std::to_string(index);
+http::Server::Server() {}
 
-    this->Get(pattern, [this, &restful] (const httplib::Request&, httplib::Response& response) {
-        set_response_from_get(response, restful.json());
+fun http::Server::add(RestfulHandler args) -> Server& {
+    if (handlers.end() != std::find_if(handlers.begin(), handlers.end(), [&args] (const RestfulHandler& handler) {
+        return handler.restful == args.restful;
+    })) {
+        return *this;
+    }
+
+    if (args.query.count("index") == 0) {
+        int index = 0;
+        std::list<int> indices;
+        for (var &handler in handlers) if (args.base_path + args.restful->path() == handler.base_path + handler.restful->path()) {
+            indices.push_back(std::atoi(handler.query["index"].c_str()));
+        }
+
+        indices.sort();
+
+        for (val i in indices) {
+            if (i == index) ++index;
+            else break;
+        }
+
+        args.query["index"] = std::to_string(index);
+    }
+
+    handlers.push_back(args);
+    
+    this->Get(args.base_path + args.restful->path(), [this] (const httplib::Request& request, httplib::Response& response) {
+        var res = find_restful(request);
+        if (not res.empty())
+            set_response_from_get(response, res.front()->json());
+        else
+            response.status = 404;
     });
 
-    this->Patch(pattern, [this, &restful] (const httplib::Request& request, httplib::Response& response) {
-        set_response(response, restful.patch(request.body));
+    this->Patch(args.base_path + args.restful->path(), [this] (const httplib::Request& request, httplib::Response& response) {
+        var res = find_restful(request);
+        if (not res.empty())
+            set_response(response, res.front()->patch(request.body));
+        else
+            response.status = 404;
     });
 
-    this->Post(pattern + "/(.*)", [this, &restful] (const httplib::Request& request, httplib::Response& response) {
-        std::string method = request.matches[1];
-        set_response(response, restful.post(method, request.body));
+    this->Post(args.base_path + args.restful->path(), [this] (const httplib::Request& request, httplib::Response& response) {
+        if (not request.has_param("method")) {
+            set_response(response, tools::json_response_status_fail("Query method is not specified"));
+            return;
+        }
+        if (request.get_param_value_count("method") > 1) {
+            set_response(response, tools::json_response_status_fail("Multiple query methods"));
+            return;
+        }
+
+        var res = find_restful(request);
+        if (not res.empty())
+            set_response(response, res.front()->post(request.get_param_value("method"), request.body));
+        else
+            response.status = 404;
     });
 
-    var listener = dynamic_cast<abstract::Listener*>(&restful);
+    this->Delete(args.base_path + args.restful->path(), [this] (const httplib::Request& request, httplib::Response& response) {
+        var res = find_restful(request);
+        if (res.empty()) {
+            response.status = 404;
+            return;
+        }
+        
+        for (var &restful in res) {
+            handlers.remove_if([&restful] (const RestfulHandler& handler) { return handler.restful == restful; });
+        }
+        set_response(response, tools::json_response_status_success(request.path));
+    });
+
+    var listener = dynamic_cast<abstract::Listener*>(args.restful.get());
     if (listener == nullptr)
         return *this;
-
-    this->Get(pattern + R"(/(.*)(/\d+)?)", [this, listener] (const httplib::Request& request, httplib::Response& response) {
-        try {
-            val devicePath = "/" + std::string(request.matches[1]);
-
-            if (request.matches[2].matched) {
-                val device = &listener->operator[](std::stoi(std::string(request.matches[2])));
-
-                if (devicePath == device->path()) 
-                    set_response_from_get(response, device->json());
-            } else {
-                const abstract::Device* device = null;
-                for (val &item in *listener) if (item.path() == devicePath) 
-                    device = &item;
-
-                if (device != null) 
-                    set_response_from_get(response, device->json());
-            }
-        } catch (const std::exception& e) {
-            set_response(response, tools::json_response_status_fail(e.what()));
-        }
-    });
-
-    this->Patch(pattern + R"(/(.*)(/\d+)?)", [this, listener] (const httplib::Request& request, httplib::Response& response) {
-        try {
-            val devicePath = "/" + std::string(request.matches[1]);
-
-            if (request.matches[2].matched) {
-                var device = &listener->operator[](std::stoi(std::string(request.matches[2])));
-
-                if (devicePath == device->path()) 
-                    set_response(response, device->patch(request.body));
-            } else {
-                abstract::Device* device = null;
-                for (var &item in *listener) if (item.path() == devicePath) 
-                    device = &item;
-
-                if (device != null) 
-                    set_response(response, device->patch(request.body));
-            }
-        } catch (const std::exception& e) {
-            set_response(response, tools::json_response_status_fail(e.what()));
-        }
-    });
-
-    this->Post(pattern + R"(/(.*)(/\d+)?/(.*))", [this, listener] (const httplib::Request& request, httplib::Response& response) {
-        try {
-            val devicePath = "/" + std::string(request.matches[1]);
-            val deviceMethod = std::string(request.matches[3]);
-
-            if (request.matches[2].matched) {
-                var device = &listener->operator[](std::stoi(std::string(request.matches[2])));
-
-                if (devicePath == device->path()) 
-                    set_response(response, device->post(deviceMethod, request.body));
-            } else {
-                abstract::Device* device = null;
-                for (var &item in *listener) if (item.path() == devicePath) 
-                    device = &item;
-
-                if (device != null) 
-                    set_response(response, device->post(deviceMethod, request.body));
-            }
-        } catch (const std::exception& e) {
-            set_response(response, tools::json_response_status_fail(e.what()));
-        }
-    });
-
-    this->Delete(pattern + R"(/(.*)(/\d+)?)", [this, listener] (const httplib::Request& request, httplib::Response& response) {
-        try {
-            auto devicePath = "/" + std::string(request.matches[1]);
-
-            if (request.matches[2].matched) {
-                auto deviceIndex = std::stoi(std::string(request.matches[2]));
-                auto &device = listener->operator[](deviceIndex);
-
-                if (devicePath == device.path()) {
-                    listener->remove(deviceIndex);
-                    response.status = 204;
-                    response.reason = "No Content";
-                }
-            } else {
-                size_t deviceIndex = 0;
-                for (var &item in *listener) {
-                    if (item.path() == devicePath)
-                        break;
-                    ++deviceIndex;
-                }
-
-                if (deviceIndex < listener->len())  {
-                    listener->remove(deviceIndex);
-                    response.status = 204;
-                    response.reason = "No Content";
-                }
-            }
-        } catch (const std::exception& e) {
-            set_response(response, tools::json_response_status_fail(e.what()));
-        }
+    
+    for (var &restful in *listener) add(RestfulHandler{
+        .restful=std::shared_ptr<abstract::Restful>(&restful, [listener] (abstract::Restful*) {}),
+        .base_path=args.base_path + listener->path()
     });
 
     return *this;
 }
+
+fun http::Server::find_restful(const httplib::Request& request, bool all) const -> std::list<std::shared_ptr<abstract::Restful>> {
+    var res = std::list<std::shared_ptr<abstract::Restful>>();
+
+    var m = std::unordered_map<std::string, std::list<std::string>>();
+    for (val &[key, value] in request.params) if (key != "method")
+        m[key].push_back(value);
+    
+    for (val &handler in handlers) {
+        if (not all and request.path != handler.base_path + handler.restful->path())
+            continue;
+
+        bool found = true;
+        for (val &[key, values] in m) {
+            var it = handler.query.find(key);
+
+            std::string sv;
+            if (it == handler.query.end()) {
+                // try to find it in json
+                val json = tools::json_parse(handler.restful->json())[etl::string_view(key.c_str())];
+                if (not json) {
+                    found = false;
+                    break;
+                }
+                var s = json.is_string() ? json.to_string() : json.dump();
+                sv = std::string(s.data(), s.len());
+            } else {
+                sv = it->second;
+            }
+
+            if (std::find(values.begin(), values.end(), sv) == values.end()) {
+                found = false;
+                break;
+            }
+        }
+
+        if (found)
+            res.push_back(handler.restful);
+    }
+
+    return res;
+};
 
 extern "C" {
 
@@ -189,12 +192,23 @@ fun nexus_http_server_add_method(nexus_http_server_t server, const char* method,
     }
 }
 
-fun nexus_http_server_add_restful(nexus_http_server_t server, nexus_restful_t restful) -> void {
-    cast_server(server)->add(*static_cast<nexus::abstract::Restful*>(restful));
-}
+fun nexus_http_server_add_restful(nexus_http_server_t server, 
+    nexus_restful_t restful,
+    const char* base_path, 
+    const char** query_keys, 
+    const char** query_values, 
+    size_t query_len
+) -> void {
+    var res = std::shared_ptr<nexus::abstract::Restful>(
+        static_cast<nexus::abstract::Restful*>(restful), 
+        [] (nexus::abstract::Restful*) {}
+    );
 
-fun nexus_http_server_add_restful_with_index(nexus_http_server_t server, nexus_restful_t restful, int index) -> void {
-    cast_server(server)->add(*static_cast<nexus::abstract::Restful*>(restful), index);
+    var query = std::unordered_map<std::string, std::string>();
+    for (size_t i = 0; i < query_len; ++i)
+        query[query_keys[i]] = query_values[i];
+    
+    cast_server(server)->add(res, base_path, std::move(query));
 }
 
 fun nexus_http_server_listen(nexus_http_server_t server, const char* host, int port) -> void {

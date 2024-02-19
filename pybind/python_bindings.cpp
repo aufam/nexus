@@ -42,6 +42,7 @@ namespace py = pybind11;
 PYBIND11_MODULE(py_nexus, m) {
     m.doc() = "Python bindings for Nexus library";
     m.attr("__version__") = NEXUS_VERSION;
+    m.attr("base_factory") = py::dict();
 
     py::bindByteView(m); 
     py::bindBaudRate(m);

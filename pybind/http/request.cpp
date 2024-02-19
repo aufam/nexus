@@ -16,6 +16,13 @@ void pybind11::bindHttpRequest(module_& m) {
     .def_readwrite("remote_port", &httplib::Request::remote_port)
     .def_readwrite("local_port", &httplib::Request::local_port)
     .def_readwrite("local_addr", &httplib::Request::local_addr)
+    .def_property_readonly("params", lambda (const httplib::Request& self) {
+        var res = std::unordered_map<std::string, std::vector<std::string>>();
+        for (auto &[key, value] in self.params) {
+            res[key].push_back(value);
+        }
+        return res;
+    })
     .def("has_header",
         &httplib::Request::has_header,
         arg("key")

@@ -53,8 +53,6 @@ namespace Project::nexus::abstract::c_wrapper {
     };
 }
 #else
-#include <stdint.h>
-#include <stddef.h>
 
 /// Opaque handle representing a Nexus codec object.
 typedef void* nexus_codec_t;

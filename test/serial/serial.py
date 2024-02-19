@@ -74,10 +74,10 @@ def main():
         print('[OK]')
 
     except AssertionError as e:
-        print(f'--AssertionError: {e}--')
+        print(f'\033[91m--Assertion Error: {e}--\033[0m')
     
     else:
-        print("--Assertion success--")
+        print("\033[92m--Assertion Success--\033[0m")
     
     finally:
         ser.disconnect()

@@ -159,12 +159,13 @@ int main(int argc, char* argv[]) {
         }},
     });
     
+    var pzem = std::make_shared<PZEM>(device_address, serial_port);
     var listener = nexus::abstract::Listener();
     listener.interval = 1s;
-    listener.add(std::make_shared<PZEM>(device_address, serial_port));
+    listener.add(pzem);
 
     var server = nexus::http::Server();
-    server.add(listener[0]);
+    server.add(pzem);
 
     server.Get("/", [&page] (const httplib::Request&, httplib::Response& response) {
         try {

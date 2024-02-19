@@ -3,6 +3,7 @@
 
 #ifdef __cplusplus
 #include <string>
+#include <memory>
 
 namespace Project::nexus::abstract { 
 
@@ -42,6 +43,11 @@ namespace Project::nexus::abstract {
     };
 }
 
+namespace Project::nexus {
+    template <typename T>
+    std::shared_ptr<abstract::Restful> make_restful(std::string_view json_request);
+}
+
 namespace Project::nexus::abstract::c_wrapper { 
     class Restful : virtual public abstract::Restful {
     public:
@@ -62,6 +68,9 @@ namespace Project::nexus::abstract::c_wrapper {
 }
 
 #else
+#include <stddef.h>
+#include <stdint.h>
+
 /// Opaque handle representing a Nexus RESTful object.
 typedef void* nexus_restful_t;
 

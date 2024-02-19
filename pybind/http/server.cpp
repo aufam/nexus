@@ -14,12 +14,10 @@ void pybind11::bindHttpServer(module_& m) {
     class_<nexus::http::Server, std::shared_ptr<nexus::http::Server>>(m, "HttpServer", "Nexus HTTP Server")
     .def(init<>())
     .def("add", 
-        [] (nexus::http::Server& self, nexus::abstract::Restful& restful, object index) -> nexus::http::Server& {
-            self.add(restful, index.is_none() ? -1 : cast<int>(index));
-            return self;
-        },
+        overload_cast<std::shared_ptr<nexus::abstract::Restful>, std::string, std::unordered_map<std::string, std::string>>(&nexus::http::Server::add),
         arg("restful"),
-        arg("index") = none(),
+        arg("base_path") = "",
+        arg("query") = dict(),
         "Adds a Nexus restful to the server's context.",
         return_value_policy::reference_internal
     )

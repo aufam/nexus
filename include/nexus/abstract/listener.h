@@ -4,7 +4,6 @@
 #include "nexus/abstract/device.h"
 
 #ifdef __cplusplus
-#include <memory>
 #include <vector>
 #include <thread>
 #include <mutex>
@@ -141,6 +140,11 @@ namespace Project::nexus::abstract {
     };
 }
 
+namespace Project::nexus {
+    template <>
+    std::shared_ptr<abstract::Restful> make_restful<abstract::Listener>(std::string_view json_request);
+}
+
 namespace Project::nexus::abstract::c_wrapper { 
     class Listener : virtual public nexus::abstract::Listener {
     public:
@@ -156,9 +160,8 @@ namespace Project::nexus::abstract::c_wrapper {
         void* c_members;
     };
 }
+
 #else
-#include <stdint.h>
-#include <stddef.h>
 
 /// Opaque handle representing a Nexus listener object.
 typedef void* nexus_listener_t;
