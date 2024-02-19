@@ -94,7 +94,13 @@ fun http::Server::add(RestfulHandler args) -> Server& {
         return *this;
     
     for (var &restful in *listener) add(RestfulHandler{
-        .restful=std::shared_ptr<abstract::Restful>(&restful, [listener] (abstract::Restful*) {}),
+        .restful=std::shared_ptr<abstract::Restful>(&restful, [restful=args.restful] (abstract::Restful* ptr) {
+            var listener = dynamic_cast<abstract::Listener*>(restful.get());
+            for (size_t i = 0; i < listener->len(); ++i) {
+                if (ptr == &listener->operator[](i))
+                    listener->remove(i);
+            }
+        }),
         .base_path=args.base_path + listener->path()
     });
 
