@@ -52,6 +52,8 @@ class AJSR04(py_nexus.Device):
     
 
 def main(serial_port, host, port, page, path_file):
+    path_file.append(f'/:{page}')
+
     ajsr04 = AJSR04(serial_port=serial_port)
     listener = py_nexus.Listener()
     listener.add(ajsr04)
@@ -59,19 +61,6 @@ def main(serial_port, host, port, page, path_file):
 
     server = py_nexus.HttpServer()
     server.add(ajsr04)
-    
-    @server.Get('/')
-    def _(request, response):
-        try:
-            with open(page, 'r') as file:
-                file_content = file.read()
-            response.set_content(file_content, 'text/html')
-            response.status = 200
-        except Exception as e:
-            response.set_content(str(e), 'text/plain')
-            response.status = 500
-
-        return response
 
     for pair in path_file:
         path, file = pair.split(':')
@@ -91,7 +80,7 @@ def main(serial_port, host, port, page, path_file):
     
     @server.logger
     def _(request, response):
-        print(f'{request.remote_addr} {request.method} {request.path} {request.version} {response.status} {response.body}')
+        print(f'{request.remote_addr} {request.method} {request.path} {request.version} {response.status}')
     
     server.listen(host=host, port=port)
     print(f'Server is running on http://{host}:{port}/')

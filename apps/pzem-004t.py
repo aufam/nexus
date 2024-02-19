@@ -109,6 +109,8 @@ class PZEM(py_nexus.Device):
     
 
 def main(serial_port, device_address, host, port, page, path_file):
+    path_file.append(f'/:{page}')
+
     pzem = PZEM(device_address, serial_port)
     listener = py_nexus.Listener()
     listener.add(pzem)
@@ -116,19 +118,6 @@ def main(serial_port, device_address, host, port, page, path_file):
 
     server = py_nexus.HttpServer()
     server.add(pzem)
-    
-    @server.Get('/')
-    def _(request, response):
-        try:
-            with open(page, 'r') as file:
-                file_content = file.read()
-            response.set_content(file_content, 'text/html')
-            response.status = 200
-        except Exception as e:
-            response.set_content(str(e), 'text/plain')
-            response.status = 500
-
-        return response
     
     for pair in path_file:
         path, file = pair.split(':')

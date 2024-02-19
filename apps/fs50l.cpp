@@ -141,8 +141,9 @@ int main(int argc, char* argv[]) {
     var device_address = 0x01;
     var host = std::string("localhost");
     var port = 5000;
-    var page = std::string(nexus::tools::parent_path(__FILE__) / "fs50l.html");
-    var path_source_pairs = std::map<std::string, std::string>();
+    var path_source_pairs = std::unordered_map<std::string, std::string>({
+        {"/", std::string(nexus::tools::parent_path(__FILE__) / "aj-sr04.html")}
+    });
 
     nexus::tools::execute_options(argc, argv, {
         {'s', "serial-port", required_argument, [&] (const char* arg) { 
@@ -158,7 +159,7 @@ int main(int argc, char* argv[]) {
             port = std::atoi(arg); 
         }},
         {'P', "page", required_argument, [&] (const char* arg) { 
-            page = arg; 
+            path_source_pairs["/"] = arg; 
         }},
         {'f', "path-file", required_argument, [&] (const char* arg) { 
             // Parse pairs of paths and source files
@@ -205,16 +206,6 @@ int main(int argc, char* argv[]) {
             request.version << " " << 
             response.status << std::endl;
     }); 
-
-    server.Get("/", [&page] (const httplib::Request&, httplib::Response& response) {
-        try {
-            response.set_content(nexus::tools::read_file(page), "text/html");
-            response.status = 200;
-        } catch (const std::exception& e) {
-            response.set_content(e.what(), "text/plain");
-            response.status = 500;
-        }
-    });
 
     for (val &[path, source] in path_source_pairs) {
         server.Get(path, [&source] (const httplib::Request&, httplib::Response& response) {
