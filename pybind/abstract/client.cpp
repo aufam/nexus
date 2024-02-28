@@ -39,7 +39,7 @@ namespace pybind11 {
 }
 
 void pybind11::bindClient(module_& m) {
-    class_<nexus::abstract::Client, Client, nexus::abstract::Restful, std::shared_ptr<nexus::abstract::Client>>(m, "Client", "Abstract Client")
+    class_<nexus::abstract::Client, Client, nexus::abstract::Communication, std::shared_ptr<nexus::abstract::Client>>(m, "Client", "Abstract Client")
     .def(init<>())
     .def("request", 
         [] (nexus::abstract::Client& self, nexus::byte_view buffer) {

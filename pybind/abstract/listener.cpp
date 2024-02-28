@@ -54,12 +54,6 @@ void pybind11::bindListener(module_& m) {
     )
     .def("add", 
         &nexus::abstract::Listener::add,
-        // [] (nexus::abstract::Listener& self, object device) -> nexus::abstract::Listener& {
-        //     if (!isinstance<nexus::abstract::Device>(device))
-        //         throw std::invalid_argument("Invalid object type: expected Device class");
-        //     self.add(std::shared_ptr<nexus::abstract::Device>(device.release().cast<nexus::abstract::Device*>()));
-        //     return self;
-        // },
         arg("device"),
         "Adds a device to the listener."
     )

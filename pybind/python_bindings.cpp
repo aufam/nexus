@@ -1,4 +1,5 @@
 #include "pybind.h"
+#include <future>
 #include <etl/keywords.h>
 
 namespace pybind11 {
@@ -72,4 +73,69 @@ PYBIND11_MODULE(py_nexus, m) {
     py::bindHttpResponse(m);
     py::bindHttpServer(m);
     py::bindHttpClient(m);
+
+    class Future {
+    public:
+        Future(py::function fn) : fn(std::move(fn)) {}
+
+        Future then(py::function then_fn) {
+            return py::cpp_function([captured_fn=std::move(fn), then_fn=std::move(then_fn)]() {
+                py::gil_scoped_acquire acquire;
+                return then_fn(captured_fn());
+            });
+        }
+
+        py::object await_() {
+            py::gil_scoped_acquire acquire;
+            return fn();
+        }
+
+        std::future<py::object> launch() {
+            return std::async([captured_fn=std::move(fn)]() mutable {
+                py::gil_scoped_acquire acquire;
+                return captured_fn();
+            });
+        }
+        
+        py::function fn;
+    };
+
+    m.def("async_", [](py::function func) {
+        return py::cpp_function([func](py::args args, py::kwargs kwargs) {
+            return Future(py::cpp_function([func, args, kwargs]() {
+                py::gil_scoped_acquire acquire;
+                return func(*args, **kwargs);
+            }));
+        });
+    });
+
+    py::class_<Future>(m, "Future")
+        .def(py::init<py::function>())
+        .def("then", &Future::then, py::arg("then_function"))
+        .def_property_readonly("await_", &Future::await_)
+        .def("launch", &Future::launch);
+    
+    py::enum_<std::future_status>(m, "StdFutureStatus")
+        .value("READY", std::future_status::ready)
+        .value("TIMEOUT", std::future_status::timeout)
+        .value("DEFERRED", std::future_status::deferred);
+
+    py::class_<std::future<py::object>>(m, "StdFuture")
+        .def("get", [](std::future<py::object>& self) {
+            py::gil_scoped_release release;
+            self.wait(); // Wait for the future to be ready
+            py::gil_scoped_acquire acquire; // Acquire GIL before accessing Python objects
+            return self.get(); // Get the result
+        })
+        .def("valid", [](std::future<py::object>& self) {
+            return self.valid();
+        })
+        .def("wait", [](std::future<py::object>& self) {
+            py::gil_scoped_release release;
+            self.wait();
+        })
+        .def("wait_for", [](std::future<py::object>& self, std::chrono::milliseconds timeout) {
+            py::gil_scoped_release release;
+            return self.wait_for(timeout);
+        });
 }
