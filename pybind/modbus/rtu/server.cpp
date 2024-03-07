@@ -22,14 +22,17 @@ void pybind11::bindModbusRTUServer(module_& m) {
         [] (nexus::modbus::rtu::Server& self, const std::string& port, size_t speed, std::chrono::milliseconds timeout = 1s) {
             std::thread([&self, port, speed, timeout] { self.listen(port, speed, timeout); }).detach();
         },
-        arg("host"),
         arg("port"),
+        arg("speed"),
         arg("timeout") = 1s,
         "Starts listening for incoming connections on a specific port.",
         return_value_policy::reference_internal
     )
     .def("stop", 
-        &nexus::modbus::rtu::Server::stop,
+        [] (nexus::modbus::rtu::Server& self) {
+            gil_scoped_release release;
+            self.stop();
+        },
         "Stops the server and closes all connections.",
         return_value_policy::reference_internal
     );

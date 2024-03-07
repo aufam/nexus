@@ -109,7 +109,10 @@ void pybind11::bindHttpServer(module_& m) {
         return_value_policy::reference_internal
     )
     .def("stop", 
-        &nexus::http::Server::stop,
+        [] (nexus::http::Server& self) {
+            gil_scoped_release release;
+            self.stop();
+        },
         "Stops the server and closes all connections.",
         return_value_policy::reference_internal
     )

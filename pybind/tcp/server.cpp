@@ -31,7 +31,7 @@ void pybind11::bindTCPServer(module_& m) {
         "set logger",
         return_value_policy::reference_internal
     )
-    .def("listen",         
+    .def("listen",
         [] (nexus::tcp::Server& self, const std::string& host, int port) {
             std::thread([&self, host, port] { self.listen(host, port); }).detach();
         },
@@ -41,7 +41,10 @@ void pybind11::bindTCPServer(module_& m) {
         return_value_policy::reference_internal
     )
     .def("stop", 
-        &nexus::tcp::Server::stop,
+        [] (nexus::tcp::Server& self) {
+            gil_scoped_release release;
+            self.stop();
+        },
         "Stops the server and closes all connections.",
         return_value_policy::reference_internal
     );
