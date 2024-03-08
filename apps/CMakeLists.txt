@@ -17,3 +17,7 @@ target_link_libraries(fs50l PRIVATE ${PROJECT_NAME})
 add_executable(pzem-004t pzem-004t.cpp)
 target_compile_options(pzem-004t PRIVATE -Wall -Wextra -Wno-literal-suffix)
 target_link_libraries(pzem-004t PRIVATE ${PROJECT_NAME})
+
+add_executable(urm15 urm15.cpp)
+target_compile_options(urm15 PRIVATE -Wall -Wextra -Wno-literal-suffix)
+target_link_libraries(urm15 PRIVATE ${PROJECT_NAME})

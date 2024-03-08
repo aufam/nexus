@@ -40,8 +40,8 @@ class AJSR04(py_nexus.Device):
         return '/aj-sr04'
 
     def json(self) -> str:
-        data1 = json.loads(self.serial.json)
-        data2 = json.loads('{"distance": ' + str(self.distance) + '}')
+        data1 = json.loads(self.serial.json())
+        data2 = {"distance": float(format(self.distance, f'.3f')) }
         return json.dumps({**data1, **data2})
     
     def post(self, method_name: str, json_request: str) -> str:

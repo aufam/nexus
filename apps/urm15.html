@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <title>AJ-SR04 Distance Sensor</title>
+    <title>URM15 Distance Sensor</title>
 </head>
 <body class="bg-gray-100 p-8">
 
     <div class="max-w-md mx-auto bg-white rounded p-8 shadow-md">
-        <h1 class="text-2xl font-bold mb-4">AJ-SR04 Distance Sensor</h1>
+        <h1 class="text-2xl font-bold mb-4">URM15 Distance Sensor</h1>
 
         <div id="response" class="mt-4"></div>
 
@@ -18,12 +18,12 @@
     </div>
 
     <script>
-        // Call fetchData every second
-        setInterval(fetchData, 1000);
+        // Call fetchData every 300 ms
+        setInterval(fetchData, 300);
 
         async function fetchData() {
             try {
-                const response = await fetch('/aj-sr04');
+                const response = await fetch('/urm15');
                 const data = await response.json();
 
                 // Display the response data
@@ -41,7 +41,7 @@
 
         async function callMethod(method) {
             try {
-                await fetch(`/aj-sr04?method=${method}`, {
+                await fetch(`/urm15?method=${method}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

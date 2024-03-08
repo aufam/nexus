@@ -50,7 +50,7 @@ class FS50L(py_nexus.Device):
         return '/fs50l'
 
     def json(self) -> str:
-        data1 = json.loads(self.rtu.json)
+        data1 = json.loads(self.rtu.json())
         data2 = {
             'frequencyRunning': self.frequencyRunning,
             'busVoltage': self.busVoltage,

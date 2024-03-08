@@ -37,6 +37,7 @@
                 displayResponse(data);
             } catch (error) {
                 console.error('Error fetching data:', error);
+                displayResponse({name: error.name, message: error.message});
             }
         }
 
@@ -47,7 +48,7 @@
 
         async function callMethod(method) {
             try {
-                await fetch(`/pzem-004t/${method}`, {
+                await fetch(`/pzem-004t?method=${method}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

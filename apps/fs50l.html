@@ -41,6 +41,7 @@
                 displayResponse(data);
             } catch (error) {
                 console.error('Error fetching data:', error);
+                displayResponse({name: error.name, message: error.message});
             }
         }
 
@@ -51,7 +52,7 @@
 
         async function callMethod(method) {
             try {
-                await fetch(`/fs50l/${method}`, {
+                await fetch(`/fs50l?method=${method}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
