@@ -11,22 +11,26 @@ bool modbus::rtu::Server::listen(std::string port, speed_t speed, std::chrono::m
     
     auto ser = serial::Hardware(port, speed, timeout, std::make_shared<api::Codec>());
     ser.addCallback([this, &ser] (byte_view buffer) {
+        auto req = buffer.copy();
         var res = process_callback(buffer);
-        if (not res.empty())
+        if (res.empty())
             return;
-        
-        ser.send(std::move(res));
+
         if (logger_)
-            logger_(buffer, res);
+            logger_(req, res);
+        
+        ser.send(res);
     });
 
-    {
+    is_running = true;
+    while (is_running and ser.isConnected()) {
         std::unique_lock<std::mutex> lock(mtx);
-        is_running = true;
-        cv.wait(lock, [this] { return not is_running; });
+        cv.wait_for(lock, timeout, [this] { return not is_running; });
     }
+
+    auto res = not is_running;
     is_running = false;
-    return true;
+    return res;
 }
 
 bool modbus::rtu::Server::listen(std::shared_ptr<serial::Hardware> ser) {
@@ -35,27 +39,34 @@ bool modbus::rtu::Server::listen(std::shared_ptr<serial::Hardware> ser) {
     
     auto iface = serial::Hardware::Interface(ser, std::make_shared<api::Codec>());
     iface.addCallback([this, &iface] (byte_view buffer) {
+        auto req = buffer.copy();
         var res = process_callback(buffer);
-        if (not res.empty())
+        if (res.empty())
             return;
-        
-        iface.getSerialHardware()->sendCodec(iface.getCodec(), std::move(res));
+
         if (logger_)
-            logger_(buffer, res);
+            logger_(req, res);
+        
+        iface.getSerialHardware()->sendCodec(iface.getCodec(), res);
     });
 
-    {
+    is_running = true;
+    while (is_running and iface.getSerialHardware()->isConnected()) {
         std::unique_lock<std::mutex> lock(mtx);
-        is_running = true;
-        cv.wait(lock, [this, &iface] { return not is_running or not iface.getSerialHardware()->isConnected(); });
+        cv.wait_for(lock, ser->timeout, [this] { return not is_running; });
     }
+
+    auto res = not is_running;
     is_running = false;
-    return true;
+    return res;
 }
 
 void modbus::rtu::Server::stop() {
-    std::lock_guard<std::mutex> lock(mtx);
-    is_running = false;
+    {
+        std::lock_guard<std::mutex> lock(mtx);
+        is_running = false;
+    }
+    cv.notify_one();
 }
 
 fun modbus::rtu::Server::setLogger(std::function<void(byte_view, byte_view)> logger) -> Server& {

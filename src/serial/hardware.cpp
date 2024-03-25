@@ -229,7 +229,7 @@ fun serial::Hardware::work() -> void {
         
         std::ignore = std::async(std::launch::async, [this, &callbackList, receivedMessage] {
             for (var &callback in callbackList)
-                callback(receivedMessage);
+                callback(receivedMessage.copy());
         });
     };
             
