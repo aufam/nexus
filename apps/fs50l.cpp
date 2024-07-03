@@ -142,7 +142,7 @@ int main(int argc, char* argv[]) {
     var host = std::string("localhost");
     var port = 5000;
     var path_source_pairs = std::unordered_map<std::string, std::string>({
-        {"/", std::string(nexus::tools::parent_path(__FILE__) / "aj-sr04.html")}
+        {"/", std::string(nexus::tools::parent_path(__FILE__) / "fs50l.html")}
     });
 
     nexus::tools::execute_options(argc, argv, {

@@ -11,14 +11,12 @@
     <div class="max-w-md mx-auto bg-white rounded p-8 shadow-md">
         <h1 class="text-2xl font-bold mb-4">FS50L Interface</h1>
 
-        <div id="response" class="mt-4"></div>
-
         <button id="reconnectBtn" class="bg-green-500 text-white py-2 px-4 rounded" onclick="callMethod('reconnect')">Reconnect</button>
         <button id="disconnectBtn" class="bg-red-500 text-white py-2 px-4 rounded" onclick="callMethod('disconnect')">Disconnect</button>
         
         <button id="forwardRunningBtn" class="bg-green-500 text-white py-2 px-4 rounded mr-2" onclick="callMethod('forward_running')">Forward Running</button>
         <button id="reverseRunningBtn" class="bg-green-500 text-white py-2 px-4 rounded mr-2" onclick="callMethod('reverse_running')">Reverse Running</button>
- 
+        
         <button id="forwardJogBtn" class="bg-green-500 text-white py-2 px-4 rounded mr-2" onclick="callMethod('forward_jog')">Forward Jog</button>
         <button id="reverseJogBtn" class="bg-green-500 text-white py-2 px-4 rounded mr-2" onclick="callMethod('reverse_jog')">Reverse Jog</button>
         
@@ -26,6 +24,8 @@
         <button id="decelerateStopBtn" class="bg-green-500 text-white py-2 px-4 rounded mr-2" onclick="callMethod('decelerate_stop')">Decelerate Stop</button>
         
         <button id="faultResettingBtn" class="bg-green-500 text-white py-2 px-4 rounded mr-2" onclick="callMethod('fault_resetting')">Fault Resetting</button>
+
+        <div id="response" class="mt-4"></div>
     </div>
 
     <script>
