@@ -172,10 +172,20 @@ fun modbus::api::Client::ReadCoils(uint16_t register_address, uint16_t n_registe
     val return_ = [this] (std::vector<bool> res, Error err) { error_ = err; return res; };
 
     try {
-        if (res[2] == res.size() - 3)
-            return return_(std::vector<bool>(res.begin() + 3, res.end()), Error::NONE);
-        else
-            return return_({}, Error::DATA_FRAME);
+        bool byte_count_size_is_2 = false;
+        size_t byte_count = res[2];
+
+        if (byte_count != res.size() - 3) {
+            byte_count = (res[2] << 8) | res[3];
+            if (byte_count == res.size() - 4) {
+                byte_count_size_is_2 = true;
+            } else {
+                return return_({}, Error::DATA_FRAME);
+            }
+        }
+
+        const int index_begin = byte_count_size_is_2 ? 4 : 3;
+        return return_(std::vector<bool>(res.begin() + index_begin, res.end()), Error::NONE);
     }
     catch (const std::out_of_range&) {
         return return_({}, Error::TIMEOUT);
@@ -195,10 +205,20 @@ fun modbus::api::Client::ReadDiscreteInputs(uint16_t register_address, uint16_t 
     val return_ = [this] (std::vector<bool> res, Error err) { error_ = err; return res; };
 
     try {
-        if (res[2] == res.size() - 3) 
-            return return_(std::vector<bool>(res.begin() + 3, res.end()), Error::NONE);
-        else
-            return return_({}, Error::DATA_FRAME);
+        bool byte_count_size_is_2 = false;
+        size_t byte_count = res[2];
+
+        if (byte_count != res.size() - 3) {
+            byte_count = (res[2] << 8) | res[3];
+            if (byte_count == res.size() - 4) {
+                byte_count_size_is_2 = true;
+            } else {
+                return return_({}, Error::DATA_FRAME);
+            }
+        }
+
+        const int index_begin = byte_count_size_is_2 ? 4 : 3;
+        return return_(std::vector<bool>(res.begin() + index_begin, res.end()), Error::NONE);
     }
     catch (const std::out_of_range&) {
         return return_({}, Error::TIMEOUT);
@@ -218,11 +238,20 @@ fun modbus::api::Client::ReadHoldingRegisters(uint16_t register_address, uint16_
     val return_ = [this] (std::vector<uint16_t> res, Error err) { error_ = err; return res; };
 
     try {
-        if (res[2] != res.size() - 3)
-            return return_({}, Error::DATA_FRAME);
+        bool byte_count_size_is_2 = false;
+        size_t byte_count = res[2];
 
-        const int length = res[2] / 2;
-        const int index_begin = 3;
+        if (byte_count != res.size() - 3) {
+            byte_count = (res[2] << 8) | res[3];
+            if (byte_count == res.size() - 4) {
+                byte_count_size_is_2 = true;
+            } else {
+                return return_({}, Error::DATA_FRAME);
+            }
+        }
+
+        const int length = byte_count / 2;
+        const int index_begin = byte_count_size_is_2 ? 4 : 3;
 
         std::vector<uint16_t> ret;
         ret.reserve(length);
@@ -249,11 +278,20 @@ fun modbus::api::Client::ReadInputRegisters(uint16_t register_address, uint16_t 
     val return_ = [this] (std::vector<uint16_t> res, Error err) { error_ = err; return res; };
 
     try {
-        if (res[2] != res.size() - 3)
-            return return_({}, Error::DATA_FRAME);
+        bool byte_count_size_is_2 = false;
+        size_t byte_count = res[2];
 
-        const int length = res[2] / 2;
-        const int index_begin = 3;
+        if (byte_count != res.size() - 3) {
+            byte_count = (res[2] << 8) | res[3];
+            if (byte_count == res.size() - 4) {
+                byte_count_size_is_2 = true;
+            } else {
+                return return_({}, Error::DATA_FRAME);
+            }
+        }
+
+        const int length = byte_count / 2;
+        const int index_begin = byte_count_size_is_2 ? 4 : 3;
 
         std::vector<uint16_t> ret;
         ret.reserve(length);
