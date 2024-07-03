@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <title>SHZK Interface</title>
+</head>
+<body class="bg-gray-100 p-8">
+
+    <div class="max-w-md mx-auto bg-white rounded p-8 shadow-md">
+        <h1 class="text-2xl font-bold mb-4">SHZK Interface</h1>
+
+        <button id="reconnectBtn" class="bg-green-500 text-white py-2 px-4 rounded" onclick="callMethod('reconnect')">Reconnect</button>
+        <button id="disconnectBtn" class="bg-red-500 text-white py-2 px-4 rounded" onclick="callMethod('disconnect')">Disconnect</button>
+        
+        <button id="forwardRunningBtn" class="bg-green-500 text-white py-2 px-4 rounded mr-2" onclick="callMethod('forward_running')">Forward Running</button>
+        <button id="reverseRunningBtn" class="bg-green-500 text-white py-2 px-4 rounded mr-2" onclick="callMethod('reverse_running')">Reverse Running</button>
+ 
+        <button id="forwardJogBtn" class="bg-green-500 text-white py-2 px-4 rounded mr-2" onclick="callMethod('forward_jog')">Forward Jog</button>
+        <button id="reverseJogBtn" class="bg-green-500 text-white py-2 px-4 rounded mr-2" onclick="callMethod('reverse_jog')">Reverse Jog</button>
+        
+        <button id="freeStopBtn" class="bg-green-500 text-white py-2 px-4 rounded mr-2" onclick="callMethod('free_stop')">Free Stop</button>
+        <button id="decelerateStopBtn" class="bg-green-500 text-white py-2 px-4 rounded mr-2" onclick="callMethod('decelerate_stop')">Decelerate Stop</button>
+        
+        <button id="faultResettingBtn" class="bg-green-500 text-white py-2 px-4 rounded mr-2" onclick="callMethod('fault_resetting')">Fault Resetting</button>
+        
+        <div id="response" class="mt-4"></div>
+    </div>
+
+    <script>
+        // Call fetchData every second
+        setInterval(fetchData, 1000);
+
+        async function fetchData() {
+            try {
+                const response = await fetch('/shzk');
+                const data = await response.json();
+
+                // Display the response data
+                displayResponse(data);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                displayResponse({name: error.name, message: error.message});
+            }
+        }
+
+        function displayResponse(data) {
+            const responseElement = document.getElementById('response');
+            responseElement.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+        }
+
+        async function callMethod(method) {
+            try {
+                await fetch(`/shzk?method=${method}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({}) // Sending an empty JSON object
+                });
+
+                console.log(`${method} request sent`);
+            } catch (error) {
+                console.error(`Error sending ${method} request`)
+            }
+        }
+    </script>
+
+</body>
+</html>
